@@ -1,0 +1,112 @@
+import pandas as pd
+import random
+df=pd.read_csv('C://Users//Vamshi//Desktop//Data_exp.csv')
+df.head()
+
+
+data=df.round(2)
+
+def makeSubspaces(trainingData,selectedFeature):
+    #noOfFeature= noOfFeature + 1
+    subspacesList=[]
+    #print(selectedFeature)
+    #print(trainingData)
+    if len(selectedFeature)==0:
+        for cols in trainingData.columns:
+            #'here we have included {} columns'.format(noOfFeature)
+            subspacesList.append(cols)
+    else:
+        #subspacesList=[[cols,item] for cols in trainingData.columns for item in selectedFeature]
+        for cols in trainingData.columns:
+            #'here we have included {} columns'.format(noOfFeature)
+            subspacesList.append([cols,selectedFeature])
+    return subspacesList
+	
+	
+def calculateSubspaceScore(featureList):
+    ConstrainedScore = random.randint(0, 100)
+    DistanceScore = random.randint(0, 100)
+    FinalScore = ConstrainedScore + DistanceScore
+    return FinalScore
+	
+	
+def scoreCalculate(ssList):
+    subspaceScoresList=[]
+    for feature in ssList:
+        FinalScore = calculateSubspaceScore(feature)
+        subspaceScoresList.append([feature,FinalScore])    
+    return subspaceScoresList
+	
+
+def max_by_score(sequence):
+    if not sequence:
+        raise ValueError('empty sequence')
+    maximum = sequence[0]
+    for item in sequence:
+        if item[1] > maximum[1]:
+            maximum = item
+    return maximum
+	
+
+def bestScore(ssScoresList):
+    return max_by_score(ssScoresList)
+	
+def ConvertList(temp_list,featre):
+    #featu=[]
+    for ele in temp_list:
+        if type(ele) == list:
+            ConvertList(ele,featre)
+        else:
+            featre.append(ele)
+    #print(featu)
+    return featre
+	
+	
+def getUniqueItems(iterable):
+    seen = set()
+    result = []
+    for item in iterable:
+        if item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
+	
+	
+def iter_subspace(df,feat_select,previousBestScore,currentBestScore):
+    #while i<=10:
+    #print(previousBestScore)
+    #print(currentBestScore)
+    while previousBestScore <= currentBestScore:
+        possible_sslist=makeSubspaces(df,feat_select)
+        #possible_general_sslist=[element for sub_list in possible_sslist for element in sub_list]
+        #print(possible_sslist)
+        #print(possible_general_sslist)
+        score_sslist=scoreCalculate(possible_sslist)
+        featureset_score=bestScore(score_sslist)
+        #print(score_sslist)
+        #print(featureset_score)
+        features_for_nxt_iter=[item for item in df.columns if item not in featureset_score[0]]
+        if featureset_score[0] not in features_selected:
+            features_selected.append(featureset_score[0])
+            previousBestScore=currentBestScore
+            currentBestScore =featureset_score[1]
+        featu=[]
+        inter_results=ConvertList(features_selected,featu)
+        features_selected_final=getUniqueItems(featu)        
+        print('')
+        print(possible_sslist)
+        print(score_sslist)
+        print(featureset_score)
+        print(features_for_nxt_iter)
+        print(features_selected_final)
+        print(previousBestScore)
+        print(currentBestScore)
+        print('')
+        iter_subspace(df[features_for_nxt_iter],features_selected_final,previousBestScore,currentBestScore)
+        break
+		
+		
+currentBestScore = 0
+previousBestScore = 0
+features_selected=[]
+iter_subspace(data,features_selected,previousBestScore,currentBestScore)
