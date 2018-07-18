@@ -40,15 +40,18 @@ def createRandomConsPairs(listCons, n):
   return random.sample(pairsCons, n)
 
 
+
 ## Create a list of all ML constraints
 def createMLConsList():
     for index, row in trainData.iterrows():
         if float(row["mrt_liverfat_s2"]) <= 10:
             negMLCons.append(index)
+            #unlabDataInst.append(row)
         elif float(row["mrt_liverfat_s2"]) > 10:
             posMLCons.append(index)
-        #else:
-            #pass
+            #unlabDataInst.append(row)
+        else:
+            unlabDataInst.append(index)
 
     return createRandomConsPairs(posMLCons, int(noMLCons/2)) + createRandomConsPairs(negMLCons, int(noMLCons/2))
 
@@ -208,7 +211,10 @@ def calculateSubspaceScore(subspace):
 #TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_14072018.csv'
 
 ## Original Data
-TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_22042018.csv'
+#TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_22042018.csv'
+
+## Labeled Data
+TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_labeled_data.csv'
 
 def loadDatasetWithPandas(path):
     # Reading the raw data from csv file
@@ -285,83 +291,13 @@ position_list = []
 
 # Implementation of DB Scan Algo
 def CreateDBCluster(CandidateDataFrame):
-    count = trainData.shape[0]
-
-    D = math.log(count)
-    minPts = int(D)
-    kneighbour = minPts - 1
-
-    data = trainData
-
-    nbrs = NearestNeighbors(n_neighbors=minPts, algorithm='auto').fit(data)
-    distances, indices = nbrs.kneighbors(data)
-    sorted_distances = np.sort(distances, axis=None)
-
-    d = distances[:, kneighbour]
-    i = indices[:, 0]
-
-    df = pd.DataFrame(data=d, columns=['values'])
-
-    # converts the dataframe values to a list
-    values = list(df['values'])
-
-    # get length of the value set
-    nPoints = len(values)
-    allkdistpoints = np.vstack((range(nPoints), values)).T
-
-    # Access the first and last point and plot a line between them
-    largestkdistpoint = allkdistpoints[0]
-    kdistlinevector = allkdistpoints[-1] - allkdistpoints[0]
-    kdistlinevectorNorm = kdistlinevector / np.sqrt(np.sum(kdistlinevector ** 2))
-
-    # find the distance from each point to the line:
-    # vector between all points and first point
-    vectorWithlargestkpoint = allkdistpoints - largestkdistpoint
-
-    # To calculate the distance to the line, we split vecFromFirst into two
-    # components, one that is parallel to the line and one that is perpendicular
-    # Then, we take the norm of the part that is perpendicular to the line and
-    # get the distance.
-    # We find the vector parallel to the line by projecting vecFromFirst onto
-    # the line. The perpendicular vector is vecFromFirst - vecFromFirstParallel
-    # We project vecFromFirst by taking the scalar product of the vector with
-    # the unit vector that points in the direction of the line (this gives us
-    # the length of the projection of vecFromFirst onto the line). If we
-    # multiply the scalar product by the unit vector, we have vecFromFirstParallel
-    scalarProduct = np.sum(vectorWithlargestkpoint * np.matlib.repmat(kdistlinevectorNorm, nPoints, 1), axis=1)
-    vecFromFirstParallel = np.outer(scalarProduct, kdistlinevectorNorm)
-    vecToLine = vectorWithlargestkpoint - vecFromFirstParallel
-
-    # distance to line is the norm of vecToLine
-    distToLine = np.sqrt(np.sum(vecToLine ** 2, axis=1))
-    maxdistance = np.amax(distToLine)
-    # knee/elbow is the point with max distance value
-    idxOfBestPoint = np.argmax(distToLine)
-
-    # print "Knee of the curve is at index =",idxOfBestPoint
-    # print "Knee value =", values[idxOfBestPoint]
-
-    #print(maxdistance)
-    #print(idxOfBestPoint)
-    #print(values[idxOfBestPoint])
-
-    # plot of the original curve and its corresponding distances
-    #plt.figure(figsize=(12, 6))
-    #plt.plot(distToLine, label='Distances', color='r')
-    #plt.plot(values, label='Series', color='b')
-    #plt.plot([idxOfBestPoint], values[idxOfBestPoint], marker='o', markersize=8, color="red", label='Knee')
-    #plt.legend()
-    #plt.show()
-
-    epsilon = maxdistance
-
+    
     ## FITING THE DATA WITH DBSCAN
     db = DBSCAN(eps=epsilon, min_samples=minPts).fit(CandidateDataFrame)
 
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
     core_samples_mask[db.core_sample_indices_] = True
     labels = db.labels_
-    
     
     lable_list = []
 
@@ -378,8 +314,6 @@ def CreateDBCluster(CandidateDataFrame):
     print ("Unique values")
     print (output)
 
-
-
     #position_list = []
     for k in output:
         if k != -1:
@@ -392,8 +326,6 @@ def CreateDBCluster(CandidateDataFrame):
                 a = a + 1
 
             position_list.append(custer_list)
-
-
 
     #print("Position List")
     #print(position_list)
@@ -492,8 +424,54 @@ def ConvertList(temp_list, featre):
             featre.append(ele)
     return featre
 
+def calcMinPts():
+    count = trainData.shape[0]
 
+    D = math.log(count)
+    minPts = int(D)
+    return minPts
 
+def calcEpsilon():
+    data = trainData
+    
+    minPts = calcMinPts()
+    kneighbour = minPts - 1
+    nbrs = NearestNeighbors(n_neighbors=minPts, algorithm='auto').fit(data)
+    distances, indices = nbrs.kneighbors(data)
+    
+
+    d = distances[:, kneighbour]
+    #i = indices[:, 0]
+    sorted_distances = np.sort(d, axis=None)
+    df = pd.DataFrame(data=sorted_distances, columns=['values'])
+
+    # converts the dataframe values to a list
+    values = list(df['values'])
+
+    # get length of the value set
+    nPoints = len(values)
+    allkdistpoints = np.vstack((range(nPoints), values)).T
+
+    # Access the first and last point and plot a line between them
+    largestkdistpoint = allkdistpoints[0]
+    kdistlinevector = allkdistpoints[-1] - allkdistpoints[0]
+    kdistlinevectorNorm = kdistlinevector / np.sqrt(np.sum(kdistlinevector ** 2))
+
+    # find the distance from each point to the line:
+    # vector between all points and first point
+    vectorWithlargestkpoint = allkdistpoints - largestkdistpoint
+
+    scalarProduct = np.sum(vectorWithlargestkpoint * np.matlib.repmat(kdistlinevectorNorm, nPoints, 1), axis=1)
+    vecFromFirstParallel = np.outer(scalarProduct, kdistlinevectorNorm)
+    vecToLine = vectorWithlargestkpoint - vecFromFirstParallel
+
+    # distance to line is the norm of vecToLine
+    distToLine = np.sqrt(np.sum(vecToLine ** 2, axis=1))
+    maxdistance = np.amax(distToLine)
+    # knee/elbow is the point with max distance value
+    #idxOfBestPoint = np.argmax(distToLine)
+
+    return maxdistance
     
     
     
@@ -501,18 +479,35 @@ def ConvertList(temp_list, featre):
 ###############################################
 # Load Train Dataset
 trainData = loadDatasetWithPandas(TRAIN_PATH)
-trainData = trainData.replace('?', np.NaN)
+trainData = trainData.replace('?', str(np.NaN))
 print(trainData)
 
-## Set no of ML constraints
-noMLCons = 10
 
-## Set no of NL constraints
+#trainData = pd.DataFrame([])
+
+#for index, row in trainDataRaw.iterrows():
+#    if str(row["mrt_liverfat_s2"]) != "nan":
+#        trainData = trainData.append(row)
+
+#unlabDataInst = pd.DataFrame([])
+
+## User sets the no of ML constraints
+#noMLCons = input("Enter the number of must-link constraints to be used:")
+noMLCons = 10
+## User sets the no of NL constraints
+#noNLCons = input("Enter the number of not-link constraints to be used:")
 noNLCons = 10
 
+## List of randomly selected ML constraint pairs
 listMLConsPairs = createMLConsList()
 
+## List of randomly selected NL constraint pairs
 listNLConsPairs = createNLConsList()
+
+
+
+
+
 
 # =============================================================================
 # le = preprocessing.LabelEncoder()
@@ -527,8 +522,18 @@ listNLConsPairs = createNLConsList()
 for data in trainData.columns:
     if trainData[data].dtype == 'O':
         unique_elements = trainData[data].unique().tolist()
-        trainData[data] = trainData[data].apply(lambda x:unique_elements.index(x))
         
+        trainData[data] = trainData[data].apply(lambda x:unique_elements.index(x))
+
+trainData.drop(columns = ['id', 'mrt_liverfat_s2'])
+print("Shape: ", trainData.shape)
+
+epsilon = calcEpsilon()
+
+minPts = calcMinPts()
+
+
+      
 
 # The main function of the program.
 currentBestScore = 0
