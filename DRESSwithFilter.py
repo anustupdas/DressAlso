@@ -43,7 +43,7 @@ def createRandomConsPairs(listCons, n):
 
 ## Create a list of all ML constraints
 def createMLConsList():
-    for index, row in trainDataRaw.iterrows():
+    for index, row in dataRaw.iterrows():
         if float(row["mrt_liverfat_s2"]) <= 10:
             negMLCons.append(index)
             #unlabDataInst.append(row)
@@ -519,12 +519,33 @@ def calcEpsilon():
     
     
     
-# Load Datasets
-###############################################
-# Load Train Dataset
-trainDataRaw = loadDatasetWithPandas(TRAIN_PATH)
-trainDataRaw = trainDataRaw.replace('?', str(np.NaN))
-print(trainDataRaw)
+## Load the entire dataset into a data frame
+dataRaw = loadDatasetWithPandas(TRAIN_PATH)
+
+## User sets the no of ML constraints
+#noMLCons = input("Enter the number of must-link constraints to be used:")
+noMLCons = 10
+## User sets the no of NL constraints
+#noNLCons = input("Enter the number of not-link constraints to be used:")
+noNLCons = 10
+
+## List of randomly selected ML constraint pairs
+listMLConsPairs = createMLConsList()
+#listMLConsPairs = [(126, 160), (21, 503), (238, 433), (127, 521), (422, 512), (35, 212), (212, 267), (391, 396), (71, 252), (4, 465)]
+
+## List of randomly selected NL constraint pairs
+listNLConsPairs = createNLConsList()
+#listNLConsPairs = [(393, 117), (28, 6), (219, 88), (21, 2), (41, 12), (13, 1), (239, 95), (207, 85), (155, 68), (134, 53)]
+
+
+
+
+## Replace '?' with 'NaN'
+dataRaw = dataRaw.replace('?', np.NaN)
+
+## Delete the unwanted features such as ones have date, time, id and class label stoed in it
+trainData = dataRaw[dataRaw.columns.difference(['id', 'exdate_ship_s0', 'exdate_ship_s1', 'exdate_ship_s2', 'exdate_ship0_s0', 'blt_beg_s0', 'blt_beg_s1', 'blt_beg_s2', 'mrt_liverfat_s2'])]
+print(trainData)
 
 negDistSubspace = []
 #trainData = pd.DataFrame([])
@@ -535,38 +556,27 @@ negDistSubspace = []
 
 #unlabDataInst = pd.DataFrame([])
 
-## User sets the no of ML constraints
-#noMLCons = input("Enter the number of must-link constraints to be used:")
-noMLCons = 10
-## User sets the no of NL constraints
-#noNLCons = input("Enter the number of not-link constraints to be used:")
-noNLCons = 10
+##Here
+#import sys
+#sys.exit("Stop")
 
-## List of randomly selected ML constraint pairs
-#listMLConsPairs = createMLConsList()
-listMLConsPairs = [(126, 160), (21, 503), (238, 433), (127, 521), (422, 512), (35, 212), (212, 267), (391, 396), (71, 252), (4, 465)]
 
-## List of randomly selected NL constraint pairs
-#listNLConsPairs = createNLConsList()
-listNLConsPairs = [(393, 117), (28, 6), (219, 88), (21, 2), (41, 12), (13, 1), (239, 95), (207, 85), (155, 68), (134, 53)]
 
-for data in trainDataRaw.columns:
-    if trainDataRaw[data].dtype == 'O':
-        unique_elements = trainDataRaw[data].unique().tolist()
+
+
+for data in trainData.columns:
+    if trainData[data].dtype == 'O':
+        unique_elements = trainData[data].unique().tolist()
         
-        trainDataRaw[data] = trainDataRaw[data].apply(lambda x:unique_elements.index(x))
+        trainData[data] = trainData[data].apply(lambda x:unique_elements.index(x))
 
 #trainData.drop(columns = ['id', 'mrt_liverfat_s2'])
-trainData = trainDataRaw[trainDataRaw.columns.difference(['id', 'mrt_liverfat_s2'])]
-print("Shape: ", trainDataRaw.shape)
-print("Ready Shape: ", trainData.shape)
+#trainData = trainDataRaw[trainDataRaw.columns.difference(['id', 'mrt_liverfat_s2'])]
 
 epsilon = calcEpsilon()
 
 minPts = calcMinPts()
 
-
-      
 
 # The main function of the program.
 currentBestScore = 0
