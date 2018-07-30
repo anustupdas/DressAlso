@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy.matlib
 import math as math
 import itertools
-
+import sys
 
 ## List of all ML constraints belonging to class - pos
 posMLCons = []
@@ -30,15 +30,14 @@ listNLConsPairs = []
 
 ## Generate constraint pairs
 def createRandomConsPairs(listCons, n):
-  ## Generate all possible non-repeating pairs
-  pairsCons = list(itertools.combinations(listCons, 2))
- 
-  ## Randomly shuffle these pairs
-  random.shuffle(pairsCons)
-  
-  ## Randomly pick and return required no of pairs
-  return random.sample(pairsCons, n)
+    ## Generate all possible non-repeating pairs
+    pairsCons = list(itertools.combinations(listCons, 2))
 
+    ## Randomly shuffle these pairs
+    random.shuffle(pairsCons)
+
+    ## Randomly pick and return required no of pairs
+    return random.sample(pairsCons, n)
 
 
 ## Create a list of all ML constraints
@@ -46,14 +45,14 @@ def createMLConsList():
     for index, row in dataRaw.iterrows():
         if float(row["mrt_liverfat_s2"]) <= 10:
             negMLCons.append(index)
-            #unlabDataInst.append(row)
+            # unlabDataInst.append(row)
         elif float(row["mrt_liverfat_s2"]) > 10:
             posMLCons.append(index)
-            #unlabDataInst.append(row)
-        #else:
-            #unlabDataInst.append(index)
+            # unlabDataInst.append(row)
+        # else:
+        # unlabDataInst.append(index)
 
-    return createRandomConsPairs(posMLCons, int(noMLCons/2)) + createRandomConsPairs(negMLCons, int(noMLCons/2))
+    return createRandomConsPairs(posMLCons, int(noMLCons / 2)) + createRandomConsPairs(negMLCons, int(noMLCons / 2))
 
 
 ## Create a list of (pairs of) all NL constraints
@@ -63,58 +62,58 @@ def createNLConsList():
         posNegNLCons.append(tupNLCons)
 
     ## Create a list of (pairs of) NL constraints
-    return random.sample(posNegNLCons, noNLCons)  
+    return random.sample(posNegNLCons, noNLCons)
 
 
 ## Check whether the feature is nominal or not
 def checkNominal(feature):
     nominal = True
-    
+
     return nominal
 
 
 ## Calculate the distance between object pairs in a feature
-def calculateSqDistDiff(feature, objPairX, objPairY):    
-    
+def calculateSqDistDiff(feature, objPairX, objPairY):
     ## If both oject pairs are nominal
-    #if (checkNominal(feature)):
+    # if (checkNominal(feature)):
     #    if (objPairX == objPairY):
     #        diffDist = 0
     #    else:
     #        diffDist = 1
     ## If both object pairs are continuous
-    #else:
+    # else:
     diffDist = objPairX - objPairY
-    #print("Feature:",  feature)
-    #print("objPairX = ", type(objPairX))
-    #print("objPairY = ", objPairY)
-    
+    # print("Feature:",  feature)
+    # print("objPairX = ", type(objPairX))
+    # print("objPairY = ", objPairY)
+
     return (diffDist ** 2)
 
 
 ## Calculate distance between object pairs for every feature in a feature space using Heterogeneous Euclidean Overlap Metric
 def calculateHEOM(subspace, objPairX, objPairY):
     sumDistSq = 0
-    
-    ## Calculate distance between object pairs for every feature in a feature space using Heterogeneous Euclidean Overlap Metric 
+
+    ## Calculate distance between object pairs for every feature in a feature space using Heterogeneous Euclidean Overlap Metric
     for feature in subspace.columns:
-        sumDistSq = sumDistSq + calculateSqDistDiff(feature, subspace.iloc[objPairX][feature], subspace.iloc[objPairY][feature])
-        
+        sumDistSq = sumDistSq + calculateSqDistDiff(feature, subspace.iloc[objPairX][feature],
+                                                    subspace.iloc[objPairY][feature])
+
     return math.sqrt(sumDistSq)
 
 
-## Calculate the average distance between object pairs in a subspace 
+## Calculate the average distance between object pairs in a subspace
 def calculateAvgDist(subspace, listConsPairs):
     totalDist = 0
-    
+
     for consPair in listConsPairs:
-       totalDist =  calculateHEOM(subspace, consPair[0], consPair[1])
-    
+        totalDist = calculateHEOM(subspace, consPair[0], consPair[1])
+
     ## Total no of ML/NL constraints
     noConst = len(listMLConsPairs) + len(listNLConsPairs)
-    
-    avgDist = totalDist/noConst
-    
+
+    avgDist = totalDist / noConst
+
     return avgDist
 
 
@@ -122,81 +121,92 @@ def calculateAvgDist(subspace, listConsPairs):
 def calculateDistScore(subspace):
     ## Average distance between ML objects pairs
     avgDistML = calculateAvgDist(subspace, listMLConsPairs)
-    
+
     ## Average distance between NL objects pairs
     avgDistNL = calculateAvgDist(subspace, listNLConsPairs)
 
     ## Quality score based on distance
     qualScoreDist = avgDistNL - avgDistML
-    
+
     return qualScoreDist
+
 
 ## Calculate the total no of satisfied NL constraints
 def calculateNoSatisNLCons():
     i = 0
-    
-    listClusterMLCons = []
-    
-    listClusterNLCons = []
-    
-    for constPair in listNLConsPairs:
-        for clusterNo in range(len(position_list)):
-            if constPair[0] in position_list[clusterNo]:
-                listClusterMLCons.append(clusterNo)
 
+    listClusterCons = []
+
+    #listClusterNLCons = []
+    listCommCluster = []
+    for constPair in listNLConsPairs:
+        print('Const Pair: ', constPair)
+        listCommCluster.clear()
+        listClusterCons.clear()
+        #listClusterNLCons.clear()
+
+        for clusterNo in range(len(position_list)):
+            print('Cluster No: ', clusterNo)
+            #print('elements in cluster: ', position_list[clusterNo])
+            if constPair[0] in position_list[clusterNo]:
+                listClusterCons.append(clusterNo)
+            #print('listClusterMLCons: ', listClusterCons)
             if constPair[1] in position_list[clusterNo]:
-                listClusterNLCons.append(clusterNo)
-            
-            listCommCluster = list(set(listClusterMLCons) - (set(listClusterMLCons) - set(listClusterNLCons)))
-            
-            if len(listCommCluster) < 1:
-                i = i + 1
-            
+                listClusterCons.append(clusterNo)
+            #print('listClusterNLCons: ', listClusterCons)
+
+        #listCommCluster = list(set(listClusterMLCons).symmetric_difference(set(listClusterNLCons)))
+        listCommCluster = list(set(listClusterCons))
+        #print('listCommCluster: ',listCommCluster)
+        if len(listCommCluster) == 2:
+            i = i + 1
+
     return i
 
 
 ## Calculate the total no of satisfied ML constraints
 def calculateNoSatisMLCons():
     i = 0
-    
+
     for constPair in listMLConsPairs:
         for clusterNo in range(len(position_list)):
             if constPair[0] in position_list[clusterNo] and constPair[1] in position_list[clusterNo]:
-                 i = i + 1
-            
+                i = i + 1
+
     return i
 
 
 ## Calculate the quality score of a subspace based on constraint satisfaction
-def calculateConstScore():  
+def calculateConstScore():
     ## No of satisfied ML constraints
     noSatisML = calculateNoSatisMLCons()
-    
+    #print('No of satis ML: ', noSatisML)
     ## No of satisfied NL constraints
     noSatisNL = calculateNoSatisNLCons()
-    
+    #print('No of satis NL: ', noSatisNL)
+
     ## Total no of ML constraints
     totalNoML = len(listMLConsPairs)
-    
+    #print('Total No of ML: ', totalNoML)
     ## Total no of NL constraints
     totalNoNL = len(listNLConsPairs)
-    
+    #print('Total No of NL: ', totalNoNL)
     ## Quality score based on constraint satisfaction
-    qualScoreConst = (noSatisML + noSatisNL)/(totalNoML + totalNoNL)
-    
+    qualScoreConst = (noSatisML + noSatisNL) / (totalNoML + totalNoNL)
+    print('Qual Cons Score: ', )
     return qualScoreConst
 
 
 ## Calculate the quality score of each subspace based on the clustering performed by DBSCAN algorithm.
-#Input:
-#Output: Quality score for each subspace.
+# Input:
+# Output: Quality score for each subspace.
 def calculateSubspaceScore(subspace):
     ## Quality score based on constraint satisfaction
     constraintScore = calculateConstScore()
-    
+
     ## Quality score based on distance
     distanceScore = calculateDistScore(subspace)
-    
+
     if distanceScore < 0:
         negDistSubspace.append(subspace.head(0))
     ## Final quality score
@@ -205,18 +215,16 @@ def calculateSubspaceScore(subspace):
     return finalScore
 
 
-
-
-
 # from IPython.display import display, HTML
 ## Test Data
-#TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_14072018.csv'
+# TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_14072018.csv'
 
 ## Original Data
-#TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_22042018.csv'
+# TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_22042018.csv'
 
 ## Labeled Data
-TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_labeled_data.csv'
+TRAIN_PATH = '/home/kundu/Desktop/csv_result-ship_labeled_data.csv'
+
 
 def loadDatasetWithPandas(path):
     # Reading the raw data from csv file
@@ -246,7 +254,7 @@ def makeSubspaces(trainingData, selectedFeature):
 
 # This function generates a random score.
 # Sumit_Respo
-#def calculateSubspaceScore(featureList):
+# def calculateSubspaceScore(featureList):
 #    ConstrainedScore = random.randint(0, 100)
 #    DistanceScore = random.randint(0, 100)
 #    FinalScore = ConstrainedScore + DistanceScore
@@ -278,56 +286,57 @@ def performDBScan(subspace):
     print(featureSpace)
 
     CandidateDataFrame = pd.DataFrame(trainData, columns=featureSpace)
-    #print("dataframe is: ")
-    #print(CandidateDataFrame)
+    # print("dataframe is: ")
+    # print(CandidateDataFrame)
     print("Colums are")
-    print (CandidateDataFrame.columns)
-    
+    print(CandidateDataFrame.columns)
+
     distScoreSubspace = calculateDistScore(CandidateDataFrame)
-    
+
     print("Distance Score: ", distScoreSubspace)
-    
+
     if distScoreSubspace < 0:
         negDistSubspace.append(CandidateDataFrame.columns)
         totalQualScoreSubspace = -10
         return totalQualScoreSubspace
-        
+
     print("calling DB scan")
     constScoreSubspace = CreateDBCluster(CandidateDataFrame)
-    
+
     totalQualScoreSubspace = distScoreSubspace + constScoreSubspace
-    
+
     return totalQualScoreSubspace
 
 
 position_list = []
 
+
 # Implementation of DB Scan Algo
 def CreateDBCluster(CandidateDataFrame):
-    
+    position_list.clear()
     ## FITING THE DATA WITH DBSCAN
     db = DBSCAN(eps=epsilon, min_samples=minPts).fit(CandidateDataFrame)
 
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
     core_samples_mask[db.core_sample_indices_] = True
     labels = db.labels_
-    
+
     lable_list = []
 
     print("Labels are: ")
-    a=0;
+    a = 0;
     for i in labels:
         lable_list.append(i)
-    #print(lable_list)
+    # print(lable_list)
 
     output = []
     for x in lable_list:
         if x not in output:
             output.append(x)
-    print ("Unique values")
-    print (output)
+    print("Unique values")
+    print(output)
 
-    #position_list = []
+    # position_list = []
     for k in output:
         if k != -1:
             a = 0
@@ -340,15 +349,15 @@ def CreateDBCluster(CandidateDataFrame):
 
             position_list.append(custer_list)
 
-    #print("Position List")
-    #print(position_list)
+    # print("Position List")
+    # print(position_list)
 
     # number of cluster ignoring noise point
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
     print("No of Clusters")
     print(n_clusters_)
-    
-    #FinalScore = calculateSubspaceScore(CandidateDataFrame)
+
+    # FinalScore = calculateSubspaceScore(CandidateDataFrame)
     constScore = calculateConstScore()
     print("Constraint Score: ", constScore)
     return constScore
@@ -371,13 +380,14 @@ def scoreCalculate(ssList):
 def bestScore(ssScoresList):
     return max_by_score(ssScoresList)
 
+
 ##Filter Addition
 def dropNegetiveScoreFeature(ssScoresList):
     negFeatureList = []
     print("Score List: ", ssScoresList)
     print("Size of Score List: ", len(ssScoresList))
     for i in ssScoresList:
-        if i[1]< 0:
+        if i[1] < 0:
             negFeatureList.append(i)
             print("Negetive Score", i)
 
@@ -404,27 +414,25 @@ def iter_subspace(df, feat_select, previousBestScore, currentBestScore):
         possible_sslist = makeSubspaces(df, feat_select)
         score_sslist = scoreCalculate(possible_sslist)
         featureset_score = bestScore(score_sslist)
-        
+
         ##Filter Addition
         negFeatures = dropNegetiveScoreFeature(score_sslist)
-        
+
         features_for_nxt_iter = [item for item in df.columns if item not in featureset_score[0]]
-        
+
         ##Filter Addition
         print("No of neg subspace", len(negFeatures))
         if len(negFeatures) != 0:
             for Negitem in negFeatures:
                 if Negitem[0] in features_for_nxt_iter:
-                    
                     features_for_nxt_iter.remove(Negitem[0])
-                    
-                    
+
         if featureset_score[0] not in features_selected:
             features_selected.append(featureset_score[0])
             previousBestScore = currentBestScore
             currentBestScore = featureset_score[1]
         featu = []
-        inter_results = ConvertList(features_selected, featu)                         
+        inter_results = ConvertList(features_selected, featu)
         features_selected_final = getUniqueItems(featu)
         # print(possible_sslist)
         # print('')
@@ -467,6 +475,7 @@ def ConvertList(temp_list, featre):
             featre.append(ele)
     return featre
 
+
 ## Calculate Min Points
 def calcMinPts():
     count = trainData.shape[0]
@@ -475,17 +484,17 @@ def calcMinPts():
     minPts = int(D)
     return minPts
 
+
 def calcEpsilon():
     data = trainData
-    
+
     minPts = calcMinPts()
     kneighbour = minPts - 1
     nbrs = NearestNeighbors(n_neighbors=minPts, algorithm='auto').fit(data)
     distances, indices = nbrs.kneighbors(data)
-    
 
     d = distances[:, kneighbour]
-    #i = indices[:, 0]
+    # i = indices[:, 0]
     sorted_distances = np.sort(d, axis=None)
     df = pd.DataFrame(data=sorted_distances, columns=['values'])
 
@@ -513,70 +522,66 @@ def calcEpsilon():
     distToLine = np.sqrt(np.sum(vecToLine ** 2, axis=1))
     maxdistance = np.amax(distToLine)
     # knee/elbow is the point with max distance value
-    #idxOfBestPoint = np.argmax(distToLine)
+    # idxOfBestPoint = np.argmax(distToLine)
 
     return maxdistance
-    
-    
-    
+
+
 ## Load the entire dataset into a data frame
 dataRaw = loadDatasetWithPandas(TRAIN_PATH)
 
 ## User sets the no of ML constraints
-#noMLCons = input("Enter the number of must-link constraints to be used:")
+# noMLCons = input("Enter the number of must-link constraints to be used:")
 noMLCons = 10
 ## User sets the no of NL constraints
-#noNLCons = input("Enter the number of not-link constraints to be used:")
+# noNLCons = input("Enter the number of not-link constraints to be used:")
 noNLCons = 10
 
 ## List of randomly selected ML constraint pairs
-listMLConsPairs = createMLConsList()
-#listMLConsPairs = [(126, 160), (21, 503), (238, 433), (127, 521), (422, 512), (35, 212), (212, 267), (391, 396), (71, 252), (4, 465)]
+#listMLConsPairs = createMLConsList()
+# listMLConsPairs = [(126, 160), (21, 503), (238, 433), (127, 521), (422, 512), (35, 212), (212, 267), (391, 396), (71, 252), (4, 465)]
+listMLConsPairs = [(69, 422), (469, 561), (144, 261), (505, 569), (109, 176), (304, 385), (111, 480), (196, 387), (331, 491), (101, 447)]
 
 ## List of randomly selected NL constraint pairs
-listNLConsPairs = createNLConsList()
-#listNLConsPairs = [(393, 117), (28, 6), (219, 88), (21, 2), (41, 12), (13, 1), (239, 95), (207, 85), (155, 68), (134, 53)]
-
-
-
+#listNLConsPairs = createNLConsList()
+# listNLConsPairs = [(393, 117), (28, 6), (219, 88), (21, 2), (41, 12), (13, 1), (239, 95), (207, 85), (155, 68), (134, 53)]
+listNLConsPairs = [(406, 128), (232, 93), (223, 91), (413, 129), (206, 84), (218, 87), (563, 200), (150, 63), (545, 196), (47, 16)]
 
 ## Replace '?' with 'NaN'
 dataRaw = dataRaw.replace('?', np.NaN)
 
 ## Delete the unwanted features such as ones have date, time, id and class label stoed in it
-trainData = dataRaw[dataRaw.columns.difference(['id', 'exdate_ship_s0', 'exdate_ship_s1', 'exdate_ship_s2', 'exdate_ship0_s0', 'blt_beg_s0', 'blt_beg_s1', 'blt_beg_s2', 'mrt_liverfat_s2'])]
+trainData = dataRaw[dataRaw.columns.difference(
+    ['id', 'exdate_ship_s0', 'exdate_ship_s1', 'exdate_ship_s2', 'exdate_ship0_s0', 'blt_beg_s0', 'blt_beg_s1',
+     'blt_beg_s2', 'mrt_liverfat_s2'])]
 print(trainData)
 
 negDistSubspace = []
-#trainData = pd.DataFrame([])
+# trainData = pd.DataFrame([])
 
-#for index, row in trainDataRaw.iterrows():
+# for index, row in trainDataRaw.iterrows():
 #    if str(row["mrt_liverfat_s2"]) != "nan":
 #        trainData = trainData.append(row)
 
-#unlabDataInst = pd.DataFrame([])
+# unlabDataInst = pd.DataFrame([])
 
 ##Here
-#import sys
-#sys.exit("Stop")
-
-
-
+# import sys
+# sys.exit("Stop")
 
 
 for data in trainData.columns:
     if trainData[data].dtype == 'O':
         unique_elements = trainData[data].unique().tolist()
-        
-        trainData[data] = trainData[data].apply(lambda x:unique_elements.index(x))
 
-#trainData.drop(columns = ['id', 'mrt_liverfat_s2'])
-#trainData = trainDataRaw[trainDataRaw.columns.difference(['id', 'mrt_liverfat_s2'])]
+        trainData[data] = trainData[data].apply(lambda x: unique_elements.index(x))
+
+# trainData.drop(columns = ['id', 'mrt_liverfat_s2'])
+# trainData = trainDataRaw[trainDataRaw.columns.difference(['id', 'mrt_liverfat_s2'])]
 
 epsilon = calcEpsilon()
 
 minPts = calcMinPts()
-
 
 # The main function of the program.
 currentBestScore = 0
