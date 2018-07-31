@@ -83,37 +83,41 @@ def calculateSqDistDiff(feature, objPairX, objPairY):
     ## If both object pairs are continuous
     # else:
     diffDist = objPairX - objPairY
-    # print("Feature:",  feature)
-    # print("objPairX = ", type(objPairX))
-    # print("objPairY = ", objPairY)
-
+    #print("Feature:",  feature)
+    #print("objPairX = ", objPairX)
+    #print("objPairY = ", objPairY)
+    #print("diffDist = ", diffDist)
     return (diffDist ** 2)
 
 
 ## Calculate distance between object pairs for every feature in a feature space using Heterogeneous Euclidean Overlap Metric
 def calculateHEOM(subspace, objPairX, objPairY):
     sumDistSq = 0
-
+    #print('objPairX', objPairX)
+    #print('objPairY', objPairY)
     ## Calculate distance between object pairs for every feature in a feature space using Heterogeneous Euclidean Overlap Metric
     for feature in subspace.columns:
         sumDistSq = sumDistSq + calculateSqDistDiff(feature, subspace.iloc[objPairX][feature],
                                                     subspace.iloc[objPairY][feature])
-
+        #print('feature', feature)
+        #print('subspace.iloc[objPairX][feature]', subspace.iloc[objPairX][feature])
+        #print('subspace.iloc[objPairY][feature]', subspace.iloc[objPairY][feature])
     return math.sqrt(sumDistSq)
 
 
 ## Calculate the average distance between object pairs in a subspace
 def calculateAvgDist(subspace, listConsPairs):
     totalDist = 0
-
+    #print('Subspace: ', subspace)
     for consPair in listConsPairs:
         totalDist = calculateHEOM(subspace, consPair[0], consPair[1])
 
     ## Total no of ML/NL constraints
-    noConst = len(listMLConsPairs) + len(listNLConsPairs)
+    noConst = len(listConsPairs)
 
     avgDist = totalDist / noConst
-
+    #print('totalDist', totalDist)
+    #print('noConst', noConst)
     return avgDist
 
 
@@ -121,13 +125,13 @@ def calculateAvgDist(subspace, listConsPairs):
 def calculateDistScore(subspace):
     ## Average distance between ML objects pairs
     avgDistML = calculateAvgDist(subspace, listMLConsPairs)
-
+    #print('avgDistML: ', avgDistML)
     ## Average distance between NL objects pairs
     avgDistNL = calculateAvgDist(subspace, listNLConsPairs)
-
+    #print('avgDistNL: ', avgDistNL)
     ## Quality score based on distance
     qualScoreDist = avgDistNL - avgDistML
-
+    #print('qualScoreDist: ', qualScoreDist)
     return qualScoreDist
 
 
@@ -140,13 +144,13 @@ def calculateNoSatisNLCons():
     #listClusterNLCons = []
     listCommCluster = []
     for constPair in listNLConsPairs:
-        print('Const Pair: ', constPair)
+        #print('Const Pair: ', constPair)
         listCommCluster.clear()
         listClusterCons.clear()
         #listClusterNLCons.clear()
 
         for clusterNo in range(len(position_list)):
-            print('Cluster No: ', clusterNo)
+            #print('Cluster No: ', clusterNo)
             #print('elements in cluster: ', position_list[clusterNo])
             if constPair[0] in position_list[clusterNo]:
                 listClusterCons.append(clusterNo)
@@ -193,7 +197,7 @@ def calculateConstScore():
     #print('Total No of NL: ', totalNoNL)
     ## Quality score based on constraint satisfaction
     qualScoreConst = (noSatisML + noSatisNL) / (totalNoML + totalNoNL)
-    print('Qual Cons Score: ', )
+
     return qualScoreConst
 
 
