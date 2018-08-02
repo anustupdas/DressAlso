@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Aug  1 02:35:49 2018
+
+@author: sumit
+"""
+
 import csv
 from pathlib import Path
 from sklearn.neighbors import NearestNeighbors
@@ -26,6 +34,12 @@ listMLConsPairs = []
 
 ## List of pairs of NL constraints (randomly selected)
 listNLConsPairs = []
+
+## List of categorical features
+listCategFeat = []
+
+## List of continuous features
+listContFeat = []
 
 
 ## Generate constraint pairs
@@ -65,24 +79,27 @@ def createNLConsList():
     return random.sample(posNegNLCons, noNLCons)
 
 
-## Check whether the feature is nominal or not
-def checkNominal(feature):
-    nominal = True
-
-    return nominal
+## Check whether the feature is categorical or continuous
+def checkFeatureType(feature):
+    if feature in listCategFeat:
+        return True
+    
+    if feature in listContFeat:
+        return True
 
 
 ## Calculate the distance between object pairs in a feature
 def calculateSqDistDiff(feature, objPairX, objPairY):
-    ## If both oject pairs are nominal
-    # if (checkNominal(feature)):
+    ## If the feature is categorical
+    if (checkNominal(feature)):
     #    if (objPairX == objPairY):
     #        diffDist = 0
     #    else:
     #        diffDist = 1
-    ## If both object pairs are continuous
-    # else:
+    ## If the feature is continuous
+    #else:
     diffDist = objPairX - objPairY
+    
     #print("Feature:",  feature)
     #print("objPairX = ", objPairX)
     #print("objPairY = ", objPairY)
