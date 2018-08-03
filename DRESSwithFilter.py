@@ -80,30 +80,50 @@ def createNLConsList():
 
 
 ## Check whether the feature is categorical or continuous
-def checkFeatureType(feature):
-    if feature in listCategFeat:
+def checkFeatType(feature,listTypeFeat):
+    if feature in listTypeFeat:
         return True
-    
-    if feature in listContFeat:
-        return True
+    else:
+        return False
 
 
 ## Calculate the distance between object pairs in a feature
-def calculateSqDistDiff(feature, objPairX, objPairY):
-    ## If the feature is categorical
-    if (checkNominal(feature)):
-    #    if (objPairX == objPairY):
-    #        diffDist = 0
-    #    else:
-    #        diffDist = 1
-    ## If the feature is continuous
-    #else:
-    diffDist = objPairX - objPairY
-    
+def calculateSqDistDiff(feature, objPairX, objPairY):    
+    diffDist = 0
+    print(feature, objPairX, objPairY)
+    ## If both oject pairs are categorical
+    if checkFeatType(feature, listCategFeat):
+        if math.isnan(objPairX):
+            if math.isnan(objPairY):
+                diffDist = 0
+            else:
+                diffDist = 1
+        else:
+            if math.isnan(objPairY):
+                diffDist = 1
+            else:
+                if objPairX == objPairY:
+                    diffDist = 0
+                else:
+                    diffDist = 1
+                    
+    ## If both object pairs are continuous
+    if checkFeatType(feature, listContFeat):
+        if math.isnan(objPairX):
+            if math.isnan(objPairY):
+                diffDist = 0
+            else:
+                diffDist = -objPairY
+        else:
+            if math.isnan(objPairY):
+                diffDist = objPairX
+            else:
+                diffDist = objPairX - objPairY
+
     #print("Feature:",  feature)
-    #print("objPairX = ", objPairX)
+    #print("objPairX = ", type(objPairX))
     #print("objPairY = ", objPairY)
-    #print("diffDist = ", diffDist)
+    
     return (diffDist ** 2)
 
 
@@ -238,13 +258,13 @@ def calculateSubspaceScore(subspace):
 
 # from IPython.display import display, HTML
 ## Test Data
-# TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_14072018.csv'
+TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_14072018.csv'
 
 ## Original Data
 # TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_22042018.csv'
 
 ## Labeled Data
-TRAIN_PATH = '/home/kundu/Desktop/csv_result-ship_labeled_data.csv'
+#TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_labeled_data.csv'
 
 
 def loadDatasetWithPandas(path):
@@ -332,11 +352,32 @@ def performDBScan(subspace):
 position_list = []
 
 
+def mydistance(x, y):
+    dist = 0
+    print('x', x)
+    print('y', y)
+    for i in range(len(currentDBClusterSubspace)):
+        print("Value of X", x[i])
+        print("Value of Y", y[i])
+        dist = dist + calculateSqDistDiff(currentDBClusterSubspace[i], x[i], y[i])
+        print("Dist = ", dist)
+
+    print("Total:", dist, math.sqrt(dist))
+    return math.sqrt(dist)
+
+
+currentDBClusterSubspace = []
+
+
 # Implementation of DB Scan Algo
 def CreateDBCluster(CandidateDataFrame):
     position_list.clear()
+    
+    for data in CandidateDataFrame:
+        currentDBClusterSubspace.append(data)
+        
     ## FITING THE DATA WITH DBSCAN
-    db = DBSCAN(eps=epsilon, min_samples=minPts).fit(CandidateDataFrame)
+    db = DBSCAN(eps=epsilon, min_samples=minPts, metric=mydistance).fit(CandidateDataFrame)
 
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
     core_samples_mask[db.core_sample_indices_] = True
@@ -384,7 +425,7 @@ def CreateDBCluster(CandidateDataFrame):
     return constScore
 
 
-# Append a feature with the score. Example: [Rajesh , 150]
+## Append a feature with the score. Example: [Rajesh , 150]
 def scoreCalculate(ssList):
     print("SSList:", ssList)
     subspaceScoresList = []
@@ -568,13 +609,36 @@ listMLConsPairs = [(69, 422), (469, 561), (144, 261), (505, 569), (109, 176), (3
 # listNLConsPairs = [(393, 117), (28, 6), (219, 88), (21, 2), (41, 12), (13, 1), (239, 95), (207, 85), (155, 68), (134, 53)]
 listNLConsPairs = [(406, 128), (232, 93), (223, 91), (413, 129), (206, 84), (218, 87), (563, 200), (150, 63), (545, 196), (47, 16)]
 
+
 ## Replace '?' with 'NaN'
 dataRaw = dataRaw.replace('?', np.NaN)
 
+
+k = dataRaw.nunique()
+j = pd.unique(dataRaw.columns.values)
+
+uniqueValFtreList = []
+
+a = 0;
+b = 0;
+for i in k:
+    b = 0
+    for l in j:
+        if a == b:
+            uniqueValFtreList.append([l, i])
+        b = b+1
+    a = a + 1
+
+print("***************Feature with possible Categorial Data*******************")
+for x in uniqueValFtreList:
+    if x[1] <=10:
+        listCategFeat.append(x[0])
+    else:
+        listContFeat.append(x[0])
+        
+
 ## Delete the unwanted features such as ones have date, time, id and class label stoed in it
-trainData = dataRaw[dataRaw.columns.difference(
-    ['id', 'exdate_ship_s0', 'exdate_ship_s1', 'exdate_ship_s2', 'exdate_ship0_s0', 'blt_beg_s0', 'blt_beg_s1',
-     'blt_beg_s2', 'mrt_liverfat_s2'])]
+trainData = dataRaw[dataRaw.columns.difference(['id', 'exdate_ship_s0', 'exdate_ship_s1', 'exdate_ship_s2', 'exdate_ship0_s0', 'blt_beg_s0', 'blt_beg_s1', 'blt_beg_s2', 'mrt_liverfat_s2'])]
 print(trainData)
 
 negDistSubspace = []
@@ -587,22 +651,29 @@ negDistSubspace = []
 # unlabDataInst = pd.DataFrame([])
 
 ##Here
-# import sys
 # sys.exit("Stop")
 
 
+lst = ['stea_alt75_s0', 'stea_s0', 'stea_alt75_s2', 'stea_s2', 'mort_icd10_s0']
+#
+#
 for data in trainData.columns:
-    if trainData[data].dtype == 'O':
-        unique_elements = trainData[data].unique().tolist()
+    if data not in lst and trainData[data].dtype == 'O':
+        trainData[[data]] = trainData[[data]].apply(pd.to_numeric)
 
-        trainData[data] = trainData[data].apply(lambda x: unique_elements.index(x))
+    if trainData[data].dtype == 'O' and data in lst:
+        unique_elements = trainData[data].unique().tolist()
+        
+        trainData[data] = trainData[data].apply(lambda x:unique_elements.index(x))
+
 
 # trainData.drop(columns = ['id', 'mrt_liverfat_s2'])
 # trainData = trainDataRaw[trainDataRaw.columns.difference(['id', 'mrt_liverfat_s2'])]
 
-epsilon = calcEpsilon()
-
+#epsilon = calcEpsilon()
+epsilon = 300
 minPts = calcMinPts()
+
 
 # The main function of the program.
 currentBestScore = 0
