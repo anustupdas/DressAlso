@@ -95,7 +95,7 @@ def calculateSqDistDiff(feature, objPairX, objPairY):
     if checkFeatType(feature, listCategFeat):
         if math.isnan(objPairX):
             if math.isnan(objPairY):
-                diffDist = 0
+                diffDist = 1
             else:
                 diffDist = 1
         else:
@@ -111,12 +111,12 @@ def calculateSqDistDiff(feature, objPairX, objPairY):
     if checkFeatType(feature, listContFeat):
         if math.isnan(objPairX):
             if math.isnan(objPairY):
-                diffDist = 0
+                diffDist = 1
             else:
-                diffDist = -objPairY
+                diffDist = 1
         else:
             if math.isnan(objPairY):
-                diffDist = objPairX
+                diffDist = 1
             else:
                 diffDist = objPairX - objPairY
 
@@ -258,13 +258,13 @@ def calculateSubspaceScore(subspace):
 
 # from IPython.display import display, HTML
 ## Test Data
-TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_14072018.csv'
+##TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_14072018.csv'
 
 ## Original Data
 # TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_22042018.csv'
 
 ## Labeled Data
-#TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_labeled_data.csv'
+TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_labeled_data.csv'
 
 
 def loadDatasetWithPandas(path):
@@ -614,6 +614,11 @@ listNLConsPairs = [(406, 128), (232, 93), (223, 91), (413, 129), (206, 84), (218
 dataRaw = dataRaw.replace('?', np.NaN)
 
 
+## Delete the unwanted features such as ones have date, time, id and class label stored in it
+trainData = dataRaw[dataRaw.columns.difference(['id', 'exdate_ship_s0', 'exdate_ship_s1', 'exdate_ship_s2', 'exdate_ship0_s0', 'blt_beg_s0', 'blt_beg_s1', 'blt_beg_s2', 'mrt_liverfat_s2'])]
+print(trainData)
+
+
 k = dataRaw.nunique()
 j = pd.unique(dataRaw.columns.values)
 
@@ -636,10 +641,6 @@ for x in uniqueValFtreList:
     else:
         listContFeat.append(x[0])
         
-
-## Delete the unwanted features such as ones have date, time, id and class label stoed in it
-trainData = dataRaw[dataRaw.columns.difference(['id', 'exdate_ship_s0', 'exdate_ship_s1', 'exdate_ship_s2', 'exdate_ship0_s0', 'blt_beg_s0', 'blt_beg_s1', 'blt_beg_s2', 'mrt_liverfat_s2'])]
-print(trainData)
 
 negDistSubspace = []
 # trainData = pd.DataFrame([])
