@@ -82,6 +82,7 @@ def createNLConsList():
 ## Check whether the feature is categorical or continuous
 def checkFeatType(feature,listTypeFeat):
     if feature in listTypeFeat:
+#        print(feature, 'is in', listTypeFeat)
         return True
     else:
         return False
@@ -90,7 +91,8 @@ def checkFeatType(feature,listTypeFeat):
 ## Calculate the distance between object pairs in a feature
 def calculateSqDistDiff(feature, objPairX, objPairY):    
     diffDist = 0
-    print(feature, objPairX, objPairY)
+#    print("Inside calculateSqDistDiff")
+#    print(feature, objPairX, objPairY)
     ## If both oject pairs are categorical
     if checkFeatType(feature, listCategFeat):
         if math.isnan(objPairX):
@@ -106,7 +108,8 @@ def calculateSqDistDiff(feature, objPairX, objPairY):
                     diffDist = 0
                 else:
                     diffDist = 1
-                    
+#        print(diffDist)   
+         
     ## If both object pairs are continuous
     if checkFeatType(feature, listContFeat):
         if math.isnan(objPairX):
@@ -119,7 +122,8 @@ def calculateSqDistDiff(feature, objPairX, objPairY):
                 diffDist = 1
             else:
                 diffDist = objPairX - objPairY
-
+        #print(diffDist)
+        
     #print("Feature:",  feature)
     #print("objPairX = ", type(objPairX))
     #print("objPairY = ", objPairY)
@@ -258,13 +262,13 @@ def calculateSubspaceScore(subspace):
 
 # from IPython.display import display, HTML
 ## Test Data
-##TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_14072018.csv'
+#TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/DRESS/csv_result-ship_14072018.csv'
 
 ## Original Data
-# TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_22042018.csv'
+# TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/DRESS/csv_result-ship_22042018.csv'
 
 ## Labeled Data
-TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/Medical Data Mining/csv_result-ship_labeled_data.csv'
+TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/DRESS/csv_result-ship_labeled_data.csv'
 
 
 def loadDatasetWithPandas(path):
@@ -354,15 +358,15 @@ position_list = []
 
 def mydistance(x, y):
     dist = 0
-    print('x', x)
-    print('y', y)
+#    print('X:', x)
+#    print('Y:', y)
     for i in range(len(currentDBClusterSubspace)):
-        print("Value of X", x[i])
-        print("Value of Y", y[i])
+#        print('i = ', i)
+#        print("Value of X", x[i])
+#        print("Value of Y", y[i])
         dist = dist + calculateSqDistDiff(currentDBClusterSubspace[i], x[i], y[i])
-        print("Dist = ", dist)
-
-    print("Total:", dist, math.sqrt(dist))
+#        print("Dist = ", dist)
+#    print("Total:", dist, math.sqrt(dist))
     return math.sqrt(dist)
 
 
@@ -372,6 +376,8 @@ currentDBClusterSubspace = []
 # Implementation of DB Scan Algo
 def CreateDBCluster(CandidateDataFrame):
     position_list.clear()
+    
+    currentDBClusterSubspace.clear()
     
     for data in CandidateDataFrame:
         currentDBClusterSubspace.append(data)
@@ -549,10 +555,13 @@ def calcMinPts():
 
 def calcEpsilon():
     data = trainData
-
+    
+    for i in trainData:
+        currentDBClusterSubspace.append(i)
+    
     minPts = calcMinPts()
     kneighbour = minPts - 1
-    nbrs = NearestNeighbors(n_neighbors=minPts, algorithm='auto').fit(data)
+    nbrs = NearestNeighbors(n_neighbors=minPts, algorithm='auto', metric = mydistance).fit(data)
     distances, indices = nbrs.kneighbors(data)
 
     d = distances[:, kneighbour]
@@ -671,8 +680,8 @@ for data in trainData.columns:
 # trainData.drop(columns = ['id', 'mrt_liverfat_s2'])
 # trainData = trainDataRaw[trainDataRaw.columns.difference(['id', 'mrt_liverfat_s2'])]
 
-#epsilon = calcEpsilon()
-epsilon = 300
+epsilon = calcEpsilon()
+#epsilon = 300
 minPts = calcMinPts()
 
 
