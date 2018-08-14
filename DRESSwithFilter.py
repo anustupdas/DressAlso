@@ -544,7 +544,7 @@ def ConvertList(temp_list, featre):
     return featre
 
 
-## Calculate Min Points
+## Calculate the value of Min Points
 def calcMinPts():
     count = trainData.shape[0]
 
@@ -553,6 +553,7 @@ def calcMinPts():
     return minPts
 
 
+## Calculate the value of Epsilon 
 def calcEpsilon():
     data = trainData
     
@@ -660,25 +661,41 @@ negDistSubspace = []
 
 # unlabDataInst = pd.DataFrame([])
 
-##Here
-# sys.exit("Stop")
+
+## List of text based categorical features
+listTextCategFeat = ['mort_icd10_s0', 'stea_alt75_s0', 'stea_alt75_s2', 'stea_s0', 'stea_s2']
+
+## List of text based categorical features having missing values (np.NaN)
+listTextCategFeatNaN = []
+
+## List containing index of NaN for text based categorical features
+listTextCategFeatIndexNaN = []
 
 
-lst = ['stea_alt75_s0', 'stea_s0', 'stea_alt75_s2', 'stea_s2', 'mort_icd10_s0']
-#
-#
+##Ye
 for data in trainData.columns:
-    if data not in lst and trainData[data].dtype == 'O':
+    if data not in listTextCategFeat and trainData[data].dtype == 'O':
         trainData[[data]] = trainData[[data]].apply(pd.to_numeric)
-
-    if trainData[data].dtype == 'O' and data in lst:
+    
+    if trainData[data].dtype == 'O' and data in listTextCategFeat:
         unique_elements = trainData[data].unique().tolist()
+
         
+        if np.nan in unique_elements:
+            listTextCategFeatNaN.append(data)
+            listTextCategFeatIndexNaN.append(len(unique_elements) - 1)
+            unique_elements.remove(np.nan)
+            unique_elements.append(np.nan)
+            
         trainData[data] = trainData[data].apply(lambda x:unique_elements.index(x))
 
 
-# trainData.drop(columns = ['id', 'mrt_liverfat_s2'])
-# trainData = trainDataRaw[trainDataRaw.columns.difference(['id', 'mrt_liverfat_s2'])]
+for col in trainData.columns:
+    if col in listTextCategFeatNaN:
+        trainData[col] = trainData[col].replace(listTextCategFeatIndexNaN[listTextCategFeatNaN.index(col)], np.NaN)
+    
+
+
 
 epsilon = calcEpsilon()
 #epsilon = 300
