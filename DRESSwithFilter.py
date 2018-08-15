@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Aug  1 02:35:49 2018
-
 @author: sumit
 """
 
@@ -327,13 +326,14 @@ def performDBScan(subspace):
         # print(subspace)
         featureSpace.append(subspace)
 
-    print("main")
-    print(featureSpace)
+#    print("main")
+#    print(featureSpace)
 
     CandidateDataFrame = pd.DataFrame(trainData, columns=featureSpace)
     # print("dataframe is: ")
     # print(CandidateDataFrame)
-    print("Colums are")
+    print(" ")
+    print("Subspace:")
     print(CandidateDataFrame.columns)
 
     distScoreSubspace = calculateDistScore(CandidateDataFrame)
@@ -345,11 +345,12 @@ def performDBScan(subspace):
         totalQualScoreSubspace = -10
         return totalQualScoreSubspace
 
-    print("calling DB scan")
+#    print("calling DB scan")
     constScoreSubspace = CreateDBCluster(CandidateDataFrame)
 
     totalQualScoreSubspace = distScoreSubspace + constScoreSubspace
-
+    print("Total Score:", totalQualScoreSubspace)
+    
     return totalQualScoreSubspace
 
 
@@ -381,7 +382,10 @@ def CreateDBCluster(CandidateDataFrame):
     
     for data in CandidateDataFrame:
         currentDBClusterSubspace.append(data)
-        
+    
+    epsilon = calcEpsilon(CandidateDataFrame)
+    print("Epsilon:", epsilon)
+    
     ## FITING THE DATA WITH DBSCAN
     db = DBSCAN(eps=epsilon, min_samples=minPts, metric=mydistance).fit(CandidateDataFrame)
 
@@ -391,7 +395,7 @@ def CreateDBCluster(CandidateDataFrame):
 
     lable_list = []
 
-    print("Labels are: ")
+#    print("Labels are: ")
     a = 0;
     for i in labels:
         lable_list.append(i)
@@ -401,8 +405,7 @@ def CreateDBCluster(CandidateDataFrame):
     for x in lable_list:
         if x not in output:
             output.append(x)
-    print("Unique values")
-    print(output)
+    print("Unique values", output)
 
     # position_list = []
     for k in output:
@@ -422,8 +425,7 @@ def CreateDBCluster(CandidateDataFrame):
 
     # number of cluster ignoring noise point
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-    print("No of Clusters")
-    print(n_clusters_)
+    print("No of Clusters", n_clusters_)
 
     # FinalScore = calculateSubspaceScore(CandidateDataFrame)
     constScore = calculateConstScore()
@@ -554,11 +556,11 @@ def calcMinPts():
 
 
 ## Calculate the value of Epsilon 
-def calcEpsilon():
-    data = trainData
+def calcEpsilon(currentSubspace):
+    data = currentSubspace
     
-    for i in trainData:
-        currentDBClusterSubspace.append(i)
+#    for i in trainData:
+#        currentDBClusterSubspace.append(i)
     
     minPts = calcMinPts()
     kneighbour = minPts - 1
@@ -655,12 +657,6 @@ for x in uniqueValFtreList:
 negDistSubspace = []
 # trainData = pd.DataFrame([])
 
-# for index, row in trainDataRaw.iterrows():
-#    if str(row["mrt_liverfat_s2"]) != "nan":
-#        trainData = trainData.append(row)
-
-# unlabDataInst = pd.DataFrame([])
-
 
 ## List of text based categorical features
 listTextCategFeat = ['mort_icd10_s0', 'stea_alt75_s0', 'stea_alt75_s2', 'stea_s0', 'stea_s2']
@@ -693,12 +689,10 @@ for data in trainData.columns:
 for col in trainData.columns:
     if col in listTextCategFeatNaN:
         trainData[col] = trainData[col].replace(listTextCategFeatIndexNaN[listTextCategFeatNaN.index(col)], np.NaN)
-    
 
 
+#epsilon = calcEpsilon()
 
-epsilon = calcEpsilon()
-#epsilon = 300
 minPts = calcMinPts()
 
 
