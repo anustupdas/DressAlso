@@ -9,7 +9,8 @@ import csv
 from pathlib import Path
 from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import DBSCAN
-from sklearn import preprocessing
+from sklearn import preprocessing as pp
+
 import pandas as pd
 import numpy as np
 import random
@@ -150,7 +151,8 @@ def calculateAvgDist(subspace, listConsPairs):
     totalDist = 0
     #print('Subspace: ', subspace)
     for consPair in listConsPairs:
-        totalDist = calculateHEOM(subspace, consPair[0], consPair[1])
+        totalDist = totalDist + calculateHEOM(subspace, consPair[0], consPair[1])
+        #print('totalDist', totalDist)
 
     ## Total no of ML/NL constraints
     noConst = len(listConsPairs)
@@ -165,10 +167,10 @@ def calculateAvgDist(subspace, listConsPairs):
 def calculateDistScore(subspace):
     ## Average distance between ML objects pairs
     avgDistML = calculateAvgDist(subspace, listMLConsPairs)
-    #print('avgDistML: ', avgDistML)
+    print('avgDistML: ', avgDistML)
     ## Average distance between NL objects pairs
     avgDistNL = calculateAvgDist(subspace, listNLConsPairs)
-    #print('avgDistNL: ', avgDistNL)
+    print('avgDistNL: ', avgDistNL)
     ## Quality score based on distance
     qualScoreDist = avgDistNL - avgDistML
     #print('qualScoreDist: ', qualScoreDist)
@@ -254,7 +256,7 @@ def calculateSubspaceScore(subspace):
     if distanceScore < 0:
         negDistSubspace.append(subspace.head(0))
     ## Final quality score
-    finalScore = constraintScore + distanceScore
+    finalScore = constraintScore * distanceScore
 
     return finalScore
 
@@ -601,6 +603,14 @@ def calcEpsilon(currentSubspace):
     return maxdistance
 
 
+##
+def NormalizeData(inputdataframe, columnName):
+    scaler = pp.MinMaxScaler(feature_range=(0, 1))
+    null_index = inputdataframe[columnName].isnull()
+    inputdataframe.loc[~null_index, [columnName]] = scaler.fit_transform(inputdataframe.loc[~null_index, [columnName]])    
+    return inputdataframe
+
+
 ## Load the entire dataset into a data frame
 dataRaw = loadDatasetWithPandas(TRAIN_PATH)
 
@@ -668,7 +678,7 @@ listTextCategFeatNaN = []
 listTextCategFeatIndexNaN = []
 
 
-##Ye
+##
 for data in trainData.columns:
     if data not in listTextCategFeat and trainData[data].dtype == 'O':
         trainData[[data]] = trainData[[data]].apply(pd.to_numeric)
@@ -689,6 +699,11 @@ for data in trainData.columns:
 for col in trainData.columns:
     if col in listTextCategFeatNaN:
         trainData[col] = trainData[col].replace(listTextCategFeatIndexNaN[listTextCategFeatNaN.index(col)], np.NaN)
+
+
+for col in trainData.columns:
+    if col in listContFeat:
+        trainData = NormalizeData(trainData, col)
 
 
 #epsilon = calcEpsilon()
