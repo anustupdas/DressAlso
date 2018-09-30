@@ -1,20 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Aug  1 02:35:49 2018
-@author: sumit
-"""
-
-import csv
-from pathlib import Path
 from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import DBSCAN
 from sklearn import preprocessing
+from sklearn import preprocessing as pp
 import pandas as pd
 import numpy as np
 import random
-import matplotlib.pyplot as plt
-import numpy.matlib
 import math as math
 import itertools
 import datetime
@@ -303,7 +293,7 @@ def calculateSubspaceScore(subspace):
     if distanceScore < 0:
         negDistSubspace.append(subspace.head(0))
     ## Final quality score
-    finalScore = constraintScore + distanceScore
+    finalScore = constraintScore * distanceScore
 
     return finalScore
 
@@ -659,6 +649,14 @@ def calcEpsilon(currentSubspace):
     return maxdistance
 
 
+##
+def NormalizeData(inputdataframe, columnName):
+    scaler = pp.MinMaxScaler(feature_range=(0, 1))
+    null_index = inputdataframe[columnName].isnull()
+    inputdataframe.loc[~null_index, [columnName]] = scaler.fit_transform(inputdataframe.loc[~null_index, [columnName]])    
+    return inputdataframe
+
+
 ## Load the entire dataset into a data frame
 dataRaw = loadDatasetWithPandas(TRAIN_PATH)
 
@@ -744,6 +742,12 @@ for data in trainData.columns:
 for col in trainData.columns:
     if col in listTextCategFeatNaN:
         trainData[col] = trainData[col].replace(listTextCategFeatIndexNaN[listTextCategFeatNaN.index(col)], np.NaN)
+
+
+## Normalize continuous variables
+for col in trainData.columns:
+    if col in listContFeat:
+        trainData = NormalizeData(trainData, col)
 
 # epsilon = calcEpsilon()
 
