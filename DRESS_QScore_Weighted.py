@@ -374,6 +374,7 @@ def performDBScan(subspace):
     print(" ")
     print("Subspace:")
     print(CandidateDataFrame.columns)
+    
     # Logging
     with open('output.txt', 'a') as f:
         print("Datetime", datetime.datetime.now(), file=f)
@@ -381,12 +382,16 @@ def performDBScan(subspace):
         print(CandidateDataFrame.columns, file=f)
 
     distScoreSubspace = calculateDistScore(CandidateDataFrame)
-
     print("Distance Score: ", distScoreSubspace)
 
     if distScoreSubspace < 0:
         negDistSubspace.append(CandidateDataFrame.columns)
         totalQualScoreSubspace = -10
+        
+        ## Log the total score of a subspace
+        with open('output.txt', 'a') as f:
+            print("Total Score: -ve Distance Score", file = f)
+            
         return totalQualScoreSubspace
 
     #    print("calling DB scan")
@@ -394,10 +399,10 @@ def performDBScan(subspace):
 
     totalQualScoreSubspace = distScoreSubspace + constScoreSubspace
     print("Total Score:", totalQualScoreSubspace)
+    
     # Logging
     with open('output.txt', 'a') as f:
         print("Total Score:", totalQualScoreSubspace, file=f)
-        print("", file=f)
 
     return totalQualScoreSubspace
 
@@ -569,6 +574,14 @@ def iter_subspace(df, feat_select, previousBestScore, currentBestScore):
         print(currentBestScore)
         # print('')
         # print('')
+        
+        # Logging
+        with open('output.txt', 'a') as f:
+            print("",file = f)
+            print("Datetime", datetime.datetime.now(), file = f)
+            print("Features selected:", features_selected_final, file = f)
+            print("-- End of Iteration --", file = f)
+        
         iter_subspace(df[features_for_nxt_iter], features_selected_final, previousBestScore, currentBestScore)
         break
 
@@ -650,7 +663,7 @@ def calcEpsilon(currentSubspace):
 
 
 ##
-def NormalizeData(inputdataframe, columnName):
+def normalizeData(inputdataframe, columnName):
     scaler = pp.MinMaxScaler(feature_range=(0, 1))
     null_index = inputdataframe[columnName].isnull()
     inputdataframe.loc[~null_index, [columnName]] = scaler.fit_transform(inputdataframe.loc[~null_index, [columnName]])    
@@ -744,10 +757,14 @@ for col in trainData.columns:
         trainData[col] = trainData[col].replace(listTextCategFeatIndexNaN[listTextCategFeatNaN.index(col)], np.NaN)
 
 
-## Normalize continuous variables
+## Normalize continuous variables between 0 and 1
 for col in trainData.columns:
     if col in listContFeat:
-        trainData = NormalizeData(trainData, col)
+        trainData = normalizeData(trainData, col)
+
+## Logging
+with open('output.txt', 'a') as f:
+    print("-- DRESS Original --", file = f)
 
 # epsilon = calcEpsilon()
 
