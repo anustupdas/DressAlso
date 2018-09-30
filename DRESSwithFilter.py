@@ -1,16 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Aug  1 02:35:49 2018
-@author: sumit
-"""
-
 import csv
 from pathlib import Path
 from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import DBSCAN
 from sklearn import preprocessing as pp
-
+import datetime
 import pandas as pd
 import numpy as np
 import random
@@ -80,19 +73,19 @@ def createNLConsList():
 
 
 ## Check whether the feature is categorical or continuous
-def checkFeatType(feature,listTypeFeat):
+def checkFeatType(feature, listTypeFeat):
     if feature in listTypeFeat:
-#        print(feature, 'is in', listTypeFeat)
+        #        print(feature, 'is in', listTypeFeat)
         return True
     else:
         return False
 
 
 ## Calculate the distance between object pairs in a feature
-def calculateSqDistDiff(feature, objPairX, objPairY):    
+def calculateSqDistDiff(feature, objPairX, objPairY):
     diffDist = 0
-#    print("Inside calculateSqDistDiff")
-#    print(feature, objPairX, objPairY)
+    #    print("Inside calculateSqDistDiff")
+    #    print(feature, objPairX, objPairY)
     ## If both oject pairs are categorical
     if checkFeatType(feature, listCategFeat):
         if math.isnan(objPairX):
@@ -108,8 +101,8 @@ def calculateSqDistDiff(feature, objPairX, objPairY):
                     diffDist = 0
                 else:
                     diffDist = 1
-#        print(diffDist)   
-         
+    #        print(diffDist)
+
     ## If both object pairs are continuous
     if checkFeatType(feature, listContFeat):
         if math.isnan(objPairX):
@@ -122,44 +115,44 @@ def calculateSqDistDiff(feature, objPairX, objPairY):
                 diffDist = 1
             else:
                 diffDist = objPairX - objPairY
-        #print(diffDist)
-        
-    #print("Feature:",  feature)
-    #print("objPairX = ", type(objPairX))
-    #print("objPairY = ", objPairY)
-    
+        # print(diffDist)
+
+    # print("Feature:",  feature)
+    # print("objPairX = ", type(objPairX))
+    # print("objPairY = ", objPairY)
+
     return (diffDist ** 2)
 
 
 ## Calculate distance between object pairs for every feature in a feature space using Heterogeneous Euclidean Overlap Metric
 def calculateHEOM(subspace, objPairX, objPairY):
     sumDistSq = 0
-    #print('objPairX', objPairX)
-    #print('objPairY', objPairY)
+    # print('objPairX', objPairX)
+    # print('objPairY', objPairY)
     ## Calculate distance between object pairs for every feature in a feature space using Heterogeneous Euclidean Overlap Metric
     for feature in subspace.columns:
         sumDistSq = sumDistSq + calculateSqDistDiff(feature, subspace.iloc[objPairX][feature],
                                                     subspace.iloc[objPairY][feature])
-        #print('feature', feature)
-        #print('subspace.iloc[objPairX][feature]', subspace.iloc[objPairX][feature])
-        #print('subspace.iloc[objPairY][feature]', subspace.iloc[objPairY][feature])
+        # print('feature', feature)
+        # print('subspace.iloc[objPairX][feature]', subspace.iloc[objPairX][feature])
+        # print('subspace.iloc[objPairY][feature]', subspace.iloc[objPairY][feature])
     return math.sqrt(sumDistSq)
 
 
 ## Calculate the average distance between object pairs in a subspace
 def calculateAvgDist(subspace, listConsPairs):
     totalDist = 0
-    #print('Subspace: ', subspace)
+    # print('Subspace: ', subspace)
     for consPair in listConsPairs:
         totalDist = totalDist + calculateHEOM(subspace, consPair[0], consPair[1])
-        #print('totalDist', totalDist)
+        # print('totalDist', totalDist)
 
     ## Total no of ML/NL constraints
     noConst = len(listConsPairs)
 
     avgDist = totalDist / noConst
-    #print('totalDist', totalDist)
-    #print('noConst', noConst)
+    # print('totalDist', totalDist)
+    # print('noConst', noConst)
     return avgDist
 
 
@@ -173,7 +166,7 @@ def calculateDistScore(subspace):
     print('avgDistNL: ', avgDistNL)
     ## Quality score based on distance
     qualScoreDist = avgDistNL - avgDistML
-    #print('qualScoreDist: ', qualScoreDist)
+    # print('qualScoreDist: ', qualScoreDist)
     return qualScoreDist
 
 
@@ -183,27 +176,27 @@ def calculateNoSatisNLCons():
 
     listClusterCons = []
 
-    #listClusterNLCons = []
+    # listClusterNLCons = []
     listCommCluster = []
     for constPair in listNLConsPairs:
-        #print('Const Pair: ', constPair)
+        # print('Const Pair: ', constPair)
         listCommCluster.clear()
         listClusterCons.clear()
-        #listClusterNLCons.clear()
+        # listClusterNLCons.clear()
 
         for clusterNo in range(len(position_list)):
-            #print('Cluster No: ', clusterNo)
-            #print('elements in cluster: ', position_list[clusterNo])
+            # print('Cluster No: ', clusterNo)
+            # print('elements in cluster: ', position_list[clusterNo])
             if constPair[0] in position_list[clusterNo]:
                 listClusterCons.append(clusterNo)
-            #print('listClusterMLCons: ', listClusterCons)
+            # print('listClusterMLCons: ', listClusterCons)
             if constPair[1] in position_list[clusterNo]:
                 listClusterCons.append(clusterNo)
-            #print('listClusterNLCons: ', listClusterCons)
+            # print('listClusterNLCons: ', listClusterCons)
 
-        #listCommCluster = list(set(listClusterMLCons).symmetric_difference(set(listClusterNLCons)))
+        # listCommCluster = list(set(listClusterMLCons).symmetric_difference(set(listClusterNLCons)))
         listCommCluster = list(set(listClusterCons))
-        #print('listCommCluster: ',listCommCluster)
+        # print('listCommCluster: ',listCommCluster)
         if len(listCommCluster) == 2:
             i = i + 1
 
@@ -226,17 +219,17 @@ def calculateNoSatisMLCons():
 def calculateConstScore():
     ## No of satisfied ML constraints
     noSatisML = calculateNoSatisMLCons()
-    #print('No of satis ML: ', noSatisML)
+    # print('No of satis ML: ', noSatisML)
     ## No of satisfied NL constraints
     noSatisNL = calculateNoSatisNLCons()
-    #print('No of satis NL: ', noSatisNL)
+    # print('No of satis NL: ', noSatisNL)
 
     ## Total no of ML constraints
     totalNoML = len(listMLConsPairs)
-    #print('Total No of ML: ', totalNoML)
+    # print('Total No of ML: ', totalNoML)
     ## Total no of NL constraints
     totalNoNL = len(listNLConsPairs)
-    #print('Total No of NL: ', totalNoNL)
+    # print('Total No of NL: ', totalNoNL)
     ## Quality score based on constraint satisfaction
     qualScoreConst = (noSatisML + noSatisNL) / (totalNoML + totalNoNL)
 
@@ -246,30 +239,30 @@ def calculateConstScore():
 ## Calculate the quality score of each subspace based on the clustering performed by DBSCAN algorithm.
 # Input:
 # Output: Quality score for each subspace.
-def calculateSubspaceScore(subspace):
-    ## Quality score based on constraint satisfaction
-    constraintScore = calculateConstScore()
-
-    ## Quality score based on distance
-    distanceScore = calculateDistScore(subspace)
-
-    if distanceScore < 0:
-        negDistSubspace.append(subspace.head(0))
-    ## Final quality score
-    finalScore = constraintScore * distanceScore
-
-    return finalScore
+# def calculateSubspaceScore(subspace):
+#     ## Quality score based on constraint satisfaction
+#     constraintScore = calculateConstScore()
+#
+#     ## Quality score based on distance
+#     distanceScore = calculateDistScore(subspace)
+#
+#     if distanceScore < 0:
+#         negDistSubspace.append(subspace.head(0))
+#     ## Final quality score
+#     finalScore = constraintScore * distanceScore
+#
+#     return finalScore
 
 
 # from IPython.display import display, HTML
 ## Test Data
-#TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/DRESS/csv_result-ship_14072018.csv'
+# TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/DRESS/csv_result-ship_14072018.csv'
 
 ## Original Data
 # TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/DRESS/csv_result-ship_22042018.csv'
 
 ## Labeled Data
-TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/DRESS/csv_result-ship_labeled_data.csv'
+TRAIN_PATH = '/home/kundu/Desktop/csv_result-ship_labeled_data.csv'
 
 
 def loadDatasetWithPandas(path):
@@ -328,8 +321,8 @@ def performDBScan(subspace):
         # print(subspace)
         featureSpace.append(subspace)
 
-#    print("main")
-#    print(featureSpace)
+    #    print("main")
+    #    print(featureSpace)
 
     CandidateDataFrame = pd.DataFrame(trainData, columns=featureSpace)
     # print("dataframe is: ")
@@ -337,6 +330,12 @@ def performDBScan(subspace):
     print(" ")
     print("Subspace:")
     print(CandidateDataFrame.columns)
+
+    # Logging
+    with open('output.txt', 'a') as f:
+            print("Datetime", datetime.datetime.now(), file=f)
+            print("Subspace:", file=f)
+            print(CandidateDataFrame.columns, file=f)
 
     distScoreSubspace = calculateDistScore(CandidateDataFrame)
 
@@ -347,12 +346,17 @@ def performDBScan(subspace):
         totalQualScoreSubspace = -10
         return totalQualScoreSubspace
 
-#    print("calling DB scan")
+    #    print("calling DB scan")
     constScoreSubspace = CreateDBCluster(CandidateDataFrame)
 
-    totalQualScoreSubspace = distScoreSubspace + constScoreSubspace
+    totalQualScoreSubspace = distScoreSubspace * constScoreSubspace
     print("Total Score:", totalQualScoreSubspace)
-    
+
+    # Logging
+    with open('output.txt', 'a') as f:
+            print("Total Score:", totalQualScoreSubspace, file=f)
+            print("", file=f)
+
     return totalQualScoreSubspace
 
 
@@ -361,15 +365,15 @@ position_list = []
 
 def mydistance(x, y):
     dist = 0
-#    print('X:', x)
-#    print('Y:', y)
+    #    print('X:', x)
+    #    print('Y:', y)
     for i in range(len(currentDBClusterSubspace)):
-#        print('i = ', i)
-#        print("Value of X", x[i])
-#        print("Value of Y", y[i])
+        #        print('i = ', i)
+        #        print("Value of X", x[i])
+        #        print("Value of Y", y[i])
         dist = dist + calculateSqDistDiff(currentDBClusterSubspace[i], x[i], y[i])
-#        print("Dist = ", dist)
-#    print("Total:", dist, math.sqrt(dist))
+    #        print("Dist = ", dist)
+    #    print("Total:", dist, math.sqrt(dist))
     return math.sqrt(dist)
 
 
@@ -379,15 +383,15 @@ currentDBClusterSubspace = []
 # Implementation of DB Scan Algo
 def CreateDBCluster(CandidateDataFrame):
     position_list.clear()
-    
+
     currentDBClusterSubspace.clear()
-    
+
     for data in CandidateDataFrame:
         currentDBClusterSubspace.append(data)
-    
+
     epsilon = calcEpsilon(CandidateDataFrame)
     print("Epsilon:", epsilon)
-    
+
     ## FITING THE DATA WITH DBSCAN
     db = DBSCAN(eps=epsilon, min_samples=minPts, metric=mydistance).fit(CandidateDataFrame)
 
@@ -397,7 +401,7 @@ def CreateDBCluster(CandidateDataFrame):
 
     lable_list = []
 
-#    print("Labels are: ")
+    #    print("Labels are: ")
     a = 0;
     for i in labels:
         lable_list.append(i)
@@ -482,7 +486,7 @@ def max_by_score(sequence):
 # currentBestScore = Current best feature according to the random score genearted.
 
 def iter_subspace(df, feat_select, previousBestScore, currentBestScore):
-    while previousBestScore <= currentBestScore:
+    while previousBestScore < currentBestScore:
         possible_sslist = makeSubspaces(df, feat_select)
         score_sslist = scoreCalculate(possible_sslist)
         featureset_score = bestScore(score_sslist)
@@ -523,6 +527,12 @@ def iter_subspace(df, feat_select, previousBestScore, currentBestScore):
         print(currentBestScore)
         # print('')
         # print('')
+        # Logging
+        with open('output.txt', 'a') as f:
+            print("Datetime", datetime.datetime.now(), file=f)
+            print("Subspace:", file=f)
+            print("Iteration end", file=f)
+
         iter_subspace(df[features_for_nxt_iter], features_selected_final, previousBestScore, currentBestScore)
         break
 
@@ -557,16 +567,16 @@ def calcMinPts():
     return minPts
 
 
-## Calculate the value of Epsilon 
+## Calculate the value of Epsilon
 def calcEpsilon(currentSubspace):
     data = currentSubspace
-    
-#    for i in trainData:
-#        currentDBClusterSubspace.append(i)
-    
+
+    #    for i in trainData:
+    #        currentDBClusterSubspace.append(i)
+
     minPts = calcMinPts()
     kneighbour = minPts - 1
-    nbrs = NearestNeighbors(n_neighbors=minPts, algorithm='auto', metric = mydistance).fit(data)
+    nbrs = NearestNeighbors(n_neighbors=minPts, algorithm='auto', metric=mydistance).fit(data)
     distances, indices = nbrs.kneighbors(data)
 
     d = distances[:, kneighbour]
@@ -607,7 +617,7 @@ def calcEpsilon(currentSubspace):
 def NormalizeData(inputdataframe, columnName):
     scaler = pp.MinMaxScaler(feature_range=(0, 1))
     null_index = inputdataframe[columnName].isnull()
-    inputdataframe.loc[~null_index, [columnName]] = scaler.fit_transform(inputdataframe.loc[~null_index, [columnName]])    
+    inputdataframe.loc[~null_index, [columnName]] = scaler.fit_transform(inputdataframe.loc[~null_index, [columnName]])
     return inputdataframe
 
 
@@ -622,24 +632,25 @@ noMLCons = 10
 noNLCons = 10
 
 ## List of randomly selected ML constraint pairs
-#listMLConsPairs = createMLConsList()
+# listMLConsPairs = createMLConsList()
 # listMLConsPairs = [(126, 160), (21, 503), (238, 433), (127, 521), (422, 512), (35, 212), (212, 267), (391, 396), (71, 252), (4, 465)]
-listMLConsPairs = [(69, 422), (469, 561), (144, 261), (505, 569), (109, 176), (304, 385), (111, 480), (196, 387), (331, 491), (101, 447)]
+listMLConsPairs = [(69, 422), (469, 561), (144, 261), (505, 569), (109, 176), (304, 385), (111, 480), (196, 387),
+                   (331, 491), (101, 447)]
 
 ## List of randomly selected NL constraint pairs
-#listNLConsPairs = createNLConsList()
+# listNLConsPairs = createNLConsList()
 # listNLConsPairs = [(393, 117), (28, 6), (219, 88), (21, 2), (41, 12), (13, 1), (239, 95), (207, 85), (155, 68), (134, 53)]
-listNLConsPairs = [(406, 128), (232, 93), (223, 91), (413, 129), (206, 84), (218, 87), (563, 200), (150, 63), (545, 196), (47, 16)]
-
+listNLConsPairs = [(406, 128), (232, 93), (223, 91), (413, 129), (206, 84), (218, 87), (563, 200), (150, 63),
+                   (545, 196), (47, 16)]
 
 ## Replace '?' with 'NaN'
 dataRaw = dataRaw.replace('?', np.NaN)
 
-
 ## Delete the unwanted features such as ones have date, time, id and class label stored in it
-trainData = dataRaw[dataRaw.columns.difference(['id', 'exdate_ship_s0', 'exdate_ship_s1', 'exdate_ship_s2', 'exdate_ship0_s0', 'blt_beg_s0', 'blt_beg_s1', 'blt_beg_s2', 'mrt_liverfat_s2'])]
+trainData = dataRaw[dataRaw.columns.difference(
+    ['id', 'exdate_ship_s0', 'exdate_ship_s1', 'exdate_ship_s2', 'exdate_ship0_s0', 'blt_beg_s0', 'blt_beg_s1',
+     'blt_beg_s2', 'mrt_liverfat_s2'])]
 print(trainData)
-
 
 k = dataRaw.nunique()
 j = pd.unique(dataRaw.columns.values)
@@ -653,16 +664,15 @@ for i in k:
     for l in j:
         if a == b:
             uniqueValFtreList.append([l, i])
-        b = b+1
+        b = b + 1
     a = a + 1
 
 print("***************Feature with possible Categorial Data*******************")
 for x in uniqueValFtreList:
-    if x[1] <=10:
+    if x[1] <= 10:
         listCategFeat.append(x[0])
     else:
         listContFeat.append(x[0])
-        
 
 negDistSubspace = []
 # trainData = pd.DataFrame([])
@@ -677,42 +687,36 @@ listTextCategFeatNaN = []
 ## List containing index of NaN for text based categorical features
 listTextCategFeatIndexNaN = []
 
-
 ##
 for data in trainData.columns:
     if data not in listTextCategFeat and trainData[data].dtype == 'O':
         trainData[[data]] = trainData[[data]].apply(pd.to_numeric)
-    
+
     if trainData[data].dtype == 'O' and data in listTextCategFeat:
         unique_elements = trainData[data].unique().tolist()
 
-        
         if np.nan in unique_elements:
             listTextCategFeatNaN.append(data)
             listTextCategFeatIndexNaN.append(len(unique_elements) - 1)
             unique_elements.remove(np.nan)
             unique_elements.append(np.nan)
-            
-        trainData[data] = trainData[data].apply(lambda x:unique_elements.index(x))
 
+        trainData[data] = trainData[data].apply(lambda x: unique_elements.index(x))
 
 for col in trainData.columns:
     if col in listTextCategFeatNaN:
         trainData[col] = trainData[col].replace(listTextCategFeatIndexNaN[listTextCategFeatNaN.index(col)], np.NaN)
 
-
 for col in trainData.columns:
     if col in listContFeat:
         trainData = NormalizeData(trainData, col)
 
-
-#epsilon = calcEpsilon()
+# epsilon = calcEpsilon()
 
 minPts = calcMinPts()
 
-
 # The main function of the program.
-currentBestScore = 0
+currentBestScore = 0.0000001
 previousBestScore = 0
 features_selected = []
 iter_subspace(trainData, features_selected, previousBestScore, currentBestScore)
