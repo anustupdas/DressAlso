@@ -1,6 +1,5 @@
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import NearestNeighbors
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import *
+from sklearn.neighbors import *
 from sklearn.metrics import *
 from sklearn.cluster import DBSCAN
 from sklearn import preprocessing as pp
@@ -332,7 +331,7 @@ def performDBScan(subspace):
     constScoreSubspace = createDBCluster(candidateDataFrame)
 
     ## Total Score of a subspace
-    totalQualScoreSubspace = distScoreSubspace + constScoreSubspace
+    totalQualScoreSubspace = distScoreSubspace * constScoreSubspace
     print("Total Score:", totalQualScoreSubspace)
     
     ## Log the total score of a subspace
@@ -345,8 +344,7 @@ def performDBScan(subspace):
 ## Custom distance function
 def myDistance(x, y):
     dist = 0
-    print("X: ",x)
-    print("y: ",y)
+    
     for i in range(len(currentDBClusterSubspace)):
         dist = dist + calculateSqDistDiff(currentDBClusterSubspace[i], x[i], y[i])
 
@@ -462,7 +460,7 @@ def max_by_score(sequence):
 # currentBestScore = Current best feature according to the random score genearted.
 
 def iter_subspace(df, feat_select, previousBestScore, currentBestScore):
-    while previousBestScore <= currentBestScore:
+    while previousBestScore < currentBestScore:
         possible_sslist = makeSubspaces(df, feat_select)
         score_sslist = scoreCalculate(possible_sslist)
         featureset_score = bestScore(score_sslist)
@@ -700,7 +698,7 @@ minPts = calcMinPts()
 
 
 # The main function of the program.
-currentBestScore = 0
+currentBestScore = 0.0000001
 previousBestScore = 0
 features_selected = []
 iter_subspace(trainData, features_selected, previousBestScore, currentBestScore)
@@ -733,6 +731,7 @@ y_t = pd.DataFrame(data = y_train, columns = ['mrt_liverfat_s2']).values
 
 ## Create input data frame for evaluation based on feature set obtained from DRESS
 train_df = pd.DataFrame(data = trainData, columns = ['stea_s2', 'abstain_s0', 'atc_r05cb_s0', 'udpdkrea_s0', 'arthrit_s0', 'gastritis_s0', 'tsh_s2', 'packyrs_s0', 'angina_s0'])
+#train_df = pd.DataFrame(data = trainData, columns = ['atc_c09aa02_s2', 'marit_s0', 'atc_c09ca_s0', 'partner_s0', 'knoten_s0', 'node_s0', 'atc_a02_s0', 'asthma_untreated_s0'])
 
 ## Create training set for feature variable
 x_train = train_df.values
@@ -748,9 +747,9 @@ def kNearestNeigh(x_train, y_train, x_test):
         currentDBClusterSubspace.append(data)
     
     classifier = KNeighborsClassifier(n_neighbors = 5, algorithm = 'auto')
-    print("**************Debug point**************")
-
     classifier.fit(x_train, y_train.ravel())
+    accuracies = cross_val_score(estimator = classifier, X = x_train, y = y_train.ravel(), cv = 10)
+    print('Accuracy:', accuracies.mean())
     y_pred = classifier.predict(x_test)
     return y_pred
 
@@ -788,8 +787,9 @@ def evaluateModel(y_test, y_pred):
     #AUC Score
 #    fpr, tpr, thresholds = metrics.roc_curve(y_test, y_pred, pos_label=2)
 #    metrics.auc(fpr, tpr)
-    
+
 y_pred = kNearestNeigh(x_train, y_train, x_test)
+
 
 
 evaluateModel(y_test, y_pred)
