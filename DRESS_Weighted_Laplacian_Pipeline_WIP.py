@@ -91,7 +91,7 @@ def evaluateModel(y_test, y_pred, modelName):
 
     total = sum(sum(cm))
 
-    print("Model Name is : ", modelName)
+    print("Model Name is:", modelName)
 
     ## Calculate accuracy
     accuracy = (cm[0, 0] + cm[1, 1]) / total
@@ -110,21 +110,20 @@ def evaluateModel(y_test, y_pred, modelName):
     f_measure = f1_score(y_test, y_pred, average='macro')
     print('F Measure:', f_measure)
 
+    # AUC Score
+    fpr, tpr, thresholds = roc_curve(y_test, y_pred, pos_label=2)
+    print('AUC Score:', auc(fpr, tpr))
+    
     # Logging
     with open('DressEvaluation.txt', 'a') as f:
         print("", file=f)
-        print("Model Name is : ", modelName, file=f)
+        print("Model Name is:", modelName, file=f)
         print('Accuracy:', accuracy, file=f)
         print('Sensitivity:', sensitivity, file=f)
         print('Specificity:', specificity, file=f)
         print('F Measure:', f_measure, file=f)
-        print("******************-- End of Iteration of K fold --*******************", file=f)
+        print('AUC Score:', auc(fpr, tpr), file=f)
 
-    # AUC Score
-
-
-#    fpr, tpr, thresholds = metrics.roc_curve(y_test, y_pred, pos_label=2)
-#    metrics.auc(fpr, tpr)
 
 # ******************************************************END EVALUATION**********************************************
 
@@ -1098,9 +1097,8 @@ for train, test in kfold.split(preTrainData):
     y_test = y_test.values
 
     kNearestNeigh(x_train, y_train, x_test)
-    #To implement by Bharti............
 
-    #decisionTree(x_train, y_train, x_test)
+    decisionTree(x_train, y_train, x_test)
 
 
     # *************************************Resetting the Dataframes for next itteration of K fold*******************
