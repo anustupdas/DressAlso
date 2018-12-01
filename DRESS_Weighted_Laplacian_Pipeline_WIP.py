@@ -60,10 +60,14 @@ def kNearestNeigh(x_train, y_train, x_test):
     modelName = "KNN"
     x_train = np.nan_to_num(x_train)
     y_train = np.nan_to_num(y_train)
+    
+    currentDBClusterSubspace.clear()
+    
     for data in train_df:
         currentDBClusterSubspace.append(data)
-
-    classifier = KNeighborsClassifier(n_neighbors=5, algorithm='auto', metric = mydistance)
+#    print('Inside kNearestNeigh: currentDBClusterSubspace: ', currentDBClusterSubspace)
+    
+    classifier = KNeighborsClassifier(n_neighbors = minPts, algorithm = 'auto', metric = mydistance, n_jobs = -1)
     classifier.fit(x_train, y_train.ravel())
     accuracies = cross_val_score(estimator=classifier, X=x_train, y=y_train.ravel(), cv=10)
     print('Accuracy:', accuracies.mean())
@@ -233,15 +237,14 @@ def calculateHEOM(subspace, objPairX, objPairY):
     sumDistSq = 0
     ## Calculate distance between object pairs for every feature in a feature space using Heterogeneous Euclidean Overlap Metric
     for feature in subspace.columns:
-        # print("Subspace is: " , subspace)
-        #print("objPairX", objPairX)
-        #print("objPairY", objPairY)
-        #print('feature', feature)
-
-        #print('subspace.loc[objPairX][feature]', subspace.loc[objPairX][feature])
-        #print('subspace.loc[objPairY][feature]', subspace.loc[objPairY][feature])
-        sumDistSq = sumDistSq + calculateSqDistDiff(feature, subspace.loc[objPairX][feature],
-                                                    subspace.loc[objPairY][feature])
+        #print("Subspace is: " , subspace)
+#        print("objPairX", objPairX)
+#        print("objPairY", objPairY)
+#        print('feature', feature)
+#
+#        print('subspace.loc[objPairX][feature]', subspace.loc[objPairX][feature])
+#        print('subspace.loc[objPairY][feature]', subspace.loc[objPairY][feature])
+        sumDistSq = sumDistSq + calculateSqDistDiff(feature, subspace.loc[objPairX][feature], subspace.loc[objPairY][feature])
 
     return math.sqrt(sumDistSq)
 
@@ -270,12 +273,12 @@ def calculateAvgDist(subspace):
         for distNLCons in listNLConsDist:
             if distMLCons <= distNLCons:
                 c = c + 1
-        print('counter:', c)
+#        print('counter:', c)
         weightML = c / len(listNLConsPairs)
-        print('weightML:', weightML)
-        print('weighted Distance', distMLCons * weightML)
+#        print('weightML:', weightML)
+#        print('weighted Distance', distMLCons * weightML)
         weightedDistML = weightedDistML + distMLCons * weightML
-    print('weightedDistML:', weightedDistML)
+#    print('weightedDistML:', weightedDistML)
 
     weightedDistNL = 0
 
@@ -285,17 +288,17 @@ def calculateAvgDist(subspace):
         for distMLCons in listMLConsDist:
             if distNLCons >= distMLCons:
                 c = c + 1
-        print('counter:', c)
+#        print('counter:', c)
         weightNL = c / len(listMLConsPairs)
-        print('weightNL:', weightNL)
-        print('weighted Distance', distNLCons * weightNL)
+#        print('weightNL:', weightNL)
+#        print('weighted Distance', distNLCons * weightNL)
         weightedDistNL = weightedDistNL + distNLCons * weightNL
-    print('weightedDistNL:', weightedDistNL)
+#    print('weightedDistNL:', weightedDistNL)
 
     avgDistML = weightedDistML / len(listMLConsPairs)
-    print('avgDistML:', avgDistML)
+#    print('avgDistML:', avgDistML)
     avgDistNL = weightedDistNL / len(listNLConsPairs)
-    print('avgDistNL:', avgDistNL)
+#    print('avgDistNL:', avgDistNL)
 
     # print('totalDist', totalDist)
     # print('noConst', noConst)
@@ -402,13 +405,13 @@ def calculateConstScore():
 
 # from IPython.display import display, HTML
 ## Test Data
-# TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/DRESS/csv_result-ship_14072018.csv'
+TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/DRESS/csv_result-ship_14072018.csv'
 
 ## Original Data
 # TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/DRESS/csv_result-ship_22042018.csv'
 
 ## Labeled Data
-TRAIN_PATH = '/home/chourasi/Desktop/csv_result-ship_labeled_dataTest.csv'
+#TRAIN_PATH = '/media/sumit/Entertainment/OVGU - DKE/Summer 2018/DRESS/csv_result-ship_labeled_data.csv'
 
 
 def loadDatasetWithPandas(path):
@@ -516,10 +519,11 @@ def mydistance(x, y):
     dist = 0
     #    print('X:', x)
     #    print('Y:', y)
+#    print('Inside mydistance: currentDBClusterSubspace: ', currentDBClusterSubspace)
     for i in range(len(currentDBClusterSubspace)):
-        #        print('i = ', i)
-        #        print("Value of X", x[i])
-        #        print("Value of Y", y[i])
+#        print('i = ', i)
+#        print("Value of X", x[i])
+#        print("Value of Y", y[i])
         dist = dist + calculateSqDistDiff(currentDBClusterSubspace[i], x[i], y[i])
     #        print("Dist = ", dist)
     #    print("Total:", dist, math.sqrt(dist))
@@ -609,8 +613,8 @@ def bestScore(ssScoresList):
 ##Filter Addition
 def dropNegetiveScoreFeature(ssScoresList):
     negFeatureList = []
-    print("Score List: ", ssScoresList)
-    print("Size of Score List: ", len(ssScoresList))
+#    print("Score List: ", ssScoresList)
+#    print("Size of Score List: ", len(ssScoresList))
     for i in ssScoresList:
         if i[1] < 0:
             negFeatureList.append(i)
@@ -646,7 +650,7 @@ def iter_subspace(df, feat_select, previousBestScore, currentBestScore):
         features_for_nxt_iter = [item for item in df.columns if item not in featureset_score[0]]
 
         ##Filter Addition
-        print("No of neg subspace", len(negFeatures))
+        print("No of neg subspace:", len(negFeatures))
         if len(negFeatures) != 0:
             for Negitem in negFeatures:
                 if Negitem[0] in features_for_nxt_iter:
@@ -672,10 +676,8 @@ def iter_subspace(df, feat_select, previousBestScore, currentBestScore):
         print('')
         print(features_selected_final)
         print("Size of features_for_nxt_iter: ", len(features_for_nxt_iter))
-        print("Previous Best Subspace Score")
-        print(previousBestScore)
-        print("Current Best Subspace Score")
-        print(currentBestScore)
+        print("Previous Best Subspace Score:", previousBestScore)
+        print("Current Best Subspace Score:", currentBestScore)
         # print('')
         # print('')
 
@@ -729,7 +731,7 @@ def calcEpsilon(currentSubspace):
 
     minPts = calcMinPts()
     kneighbour = minPts - 1
-    nbrs = NearestNeighbors(n_neighbors=minPts, algorithm='auto', metric=mydistance).fit(data)
+    nbrs = NearestNeighbors(n_neighbors = minPts, algorithm = 'auto', metric = mydistance, n_jobs = -1).fit(data)
     distances, indices = nbrs.kneighbors(data)
 
     d = distances[:, kneighbour]
@@ -889,22 +891,22 @@ for train, test in kfold.split(preTrainData):
     # **************************************************Calling DRESS****************************************
     ## User sets the no of ML constraints
     # noMLCons = input("Enter the number of must-link constraints to be used:")
-    noMLCons = 10
+    noMLCons = 6
     ## User sets the no of NL constraints
     # noNLCons = input("Enter the number of not-link constraints to be used:")
-    noNLCons = 10
+    noNLCons = 6
     # print("train index", train)
     # print("test index", test)
     ## List of randomly selected ML constraint pairs
     listMLConsPairs = createMLConsList(trainData)
     # listMLConsPairs = [(126, 160), (21, 503), (238, 433), (127, 521), (422, 512), (35, 212), (212, 267), (391, 396), (71, 252), (4, 465)]
     # listMLConsPairs = [(69, 422), (469, 561), (144, 261), (505, 569), (109, 176), (304, 385), (111, 480), (196, 387), (331, 491), (101, 447)]
-    print("listMLConsPairs: ", listMLConsPairs)
+#    print("listMLConsPairs: ", listMLConsPairs)
     ## List of randomly selected NL constraint pairs
     listNLConsPairs = createNLConsList()
     # listNLConsPairs = [(393, 117), (28, 6), (219, 88), (21, 2), (41, 12), (13, 1), (239, 95), (207, 85), (155, 68), (134, 53)]
     # listNLConsPairs = [(406, 128), (232, 93), (223, 91), (413, 129), (206, 84), (218, 87), (563, 200), (150, 63), (545, 196), (47, 16)]
-    print("listNLConsPairs: ", listNLConsPairs)
+#    print("listNLConsPairs: ", listNLConsPairs)
     ## Delete the unwanted features such as ones have date, time, id and class label stored in it
     trainData = trainData[trainData.columns.difference(['mrt_liverfat_s2'])]
 
@@ -917,8 +919,12 @@ for train, test in kfold.split(preTrainData):
     previousBestScore = 0
     features_selected = []
 
-    print("The scores are: ", currentBestScore, "    ", previousBestScore)
-
+#    print("The scores are: ", currentBestScore, "    ", previousBestScore)
+    
+#    print("listData before:", len(listData))
+    listData.clear()
+    listAttributes.clear()
+#    print("listData after:", len(listData))
     ##
     for index, rows in trainData.iterrows():
         listData.append(index)
@@ -944,7 +950,7 @@ for train, test in kfold.split(preTrainData):
         # print(" i  and j", i,"", j)
         # print("full", l)
         most.append(l)
-    print('list M', most)
+#    print('list M', most)
 
          # ## Logging
          # with open('output.txt', 'a') as f:
@@ -970,9 +976,9 @@ for train, test in kfold.split(preTrainData):
     print('Sparse Affinity Matrix:', W)
 
     ## Logging
-    with open('output.txt', 'a') as f:
-        print("W", file=f)
-        print(W, file=f)
+#    with open('output.txt', 'a') as f:
+#        print("W", file=f)
+#        print(W, file=f)
 
     ##Euclidean laplacian result
     numTrainData= trainData.values
@@ -982,11 +988,11 @@ for train, test in kfold.split(preTrainData):
 
     ## Calculate Laplacian Score
     score = lap_score.lap_score(numTrainData, W = W)
-    print('Score:', score)
+    print('Laplacian Score:', score)
 
     ## Logging
     with open('output.txt', 'a') as f:
-        print("Score", file=f)
+        print("Laplacian Score", file=f)
         print(score, file=f)
 
     # Laplacian HEOM result hardcoded
@@ -1030,7 +1036,6 @@ for train, test in kfold.split(preTrainData):
     print("Index of filtered features", lap_filtered_feature_indices)
 
     traindata_columns = trainData.columns
-    # print("traindata_index", traindata_index)
 
     count = 0
     lap_feature_list = []
@@ -1040,12 +1045,10 @@ for train, test in kfold.split(preTrainData):
             lap_feature_list.append(i)
         count = count + 1
 
-    print("List")
-    print(lap_feature_list)
-    df_filtered_Data = pd.DataFrame(trainData, columns=lap_feature_list)
+    print("List:", lap_feature_list)
+    
+    df_filtered_Data = pd.DataFrame(trainData, columns = lap_feature_list)
 
-    # for index in trainData.iteritems():
-    #    listAttributes.append(type(index))
 
     # The main function of the program.
     iter_subspace(df_filtered_Data, features_selected, previousBestScore, currentBestScore)
@@ -1053,6 +1056,9 @@ for train, test in kfold.split(preTrainData):
 
     print("*****************************************************************************************")
     print(eval_feature_sel)
+    
+    
+    currentDBClusterSubspace = eval_feature_sel
 
   # Logging
     with open('DressEvaluation.txt', 'a') as f:
