@@ -9,6 +9,7 @@ import math as math
 import itertools
 import sys
 
+eval_feature_sel = []
 
 ## List of all ML constraints belonging to class - pos
 posMLCons = []
@@ -45,22 +46,37 @@ def createRandomConsPairs(listCons, n):
 
 
 ## Create a list of all ML constraints
-def createMLConsList():
-    for index, row in dataRaw.iterrows():
-        if float(row["mrt_liverfat_s2"]) <= 10:
-            negMLCons.append(index)
-        
-        if float(row["mrt_liverfat_s2"]) > 10:
-            posMLCons.append(index)
+def createMLConsList(dataFrame):
+    global posMLCons
+    global negMLCons
 
+    posMLCons.clear()
+    negMLCons.clear()
+    #print("DataFrame", dataFrame)
+    for index, row in dataFrame.iterrows():
+        #print("Index", index)
+        if float(row["mrt_liverfat_s2"]) == 0:
+            negMLCons.append(index)
+
+        if float(row["mrt_liverfat_s2"]) == 1:
+            posMLCons.append(index)
+    #print("negMLCons", negMLCons)
+    #print("posMLCons", posMLCons)
     return createRandomConsPairs(posMLCons, int(noMLCons / 2)) + createRandomConsPairs(negMLCons, int(noMLCons / 2))
 
 
 ## Create a list of (pairs of) all NL constraints
 def createNLConsList():
+    global posNegNLCons
+
+    posNegNLCons.clear()
+
+    #print("posMLCons", posMLCons)
+    #print("negMLCons", negMLCons)
     for i, j in zip(posMLCons, negMLCons):
         tupNLCons = (i, j)
         posNegNLCons.append(tupNLCons)
+    #print("posNegNLCons", posNegNLCons)
 
     ## Create a list of (pairs of) NL constraints
     return random.sample(posNegNLCons, noNLCons)
@@ -124,11 +140,15 @@ def calculateHEOM(subspace, objPairX, objPairY):
 
     ## Calculate distance between object pairs for every feature in a feature space using Heterogeneous Euclidean Overlap Metric
     for feature in subspace.columns:
-        sumDistSq = sumDistSq + calculateSqDistDiff(feature, subspace.iloc[objPairX][feature],
-                                                    subspace.iloc[objPairY][feature])
+        # print("Subspace is: " , subspace)
+        #print("objPairX", objPairX)
+        #print("objPairY", objPairY)
         #print('feature', feature)
-        #print('subspace.iloc[objPairX][feature]', subspace.iloc[objPairX][feature])
-        #print('subspace.iloc[objPairY][feature]', subspace.iloc[objPairY][feature])
+
+        #print('subspace.loc[objPairX][feature]', subspace.loc[objPairX][feature])
+        #print('subspace.loc[objPairY][feature]', subspace.loc[objPairY][feature])
+        sumDistSq = sumDistSq + calculateSqDistDiff(feature, subspace.loc[objPairX][feature], subspace.loc[objPairY][feature])
+        
     return math.sqrt(sumDistSq)
 
 
@@ -281,6 +301,9 @@ def makeSubspaces(trainingData, selectedFeature):
     return subspacesList
 
 
+negDistSubspace = []
+
+
 # This function will perform the DB-Scan Clustering Alorithm and compute the score on each subspaces.
 # Input: Subspace of features.
 # Output: Quality score for each subspace.
@@ -321,7 +344,7 @@ def performDBScan(subspace):
         
         ## Log the total score of a subspace
         with open('output.txt', 'a') as f:
-            print("Total Score: -ve Distance Score", file = f)
+            print("Total Score: Negative Distance Score:", file = f)
             
         return totalQualScoreSubspace
 
@@ -456,7 +479,6 @@ def max_by_score(sequence):
 # This function iterates through the supspaces collects the best one and increases the cardinality every single time.
 # df = Data, feat_select = Selected best feature, previousBestScore = Previous best feature according to the random score generated
 # currentBestScore = Current best feature according to the random score genearted.
-
 def iter_subspace(df, feat_select, previousBestScore, currentBestScore):
     while previousBestScore < currentBestScore:
         possible_sslist = makeSubspaces(df, feat_select)
@@ -482,6 +504,8 @@ def iter_subspace(df, feat_select, previousBestScore, currentBestScore):
         featu = []
         inter_results = ConvertList(features_selected, featu)
         features_selected_final = getUniqueItems(featu)
+        global eval_feature_sel
+        eval_feature_sel = features_selected_final
         # print(possible_sslist)
         # print('')
         # print(score_sslist)
@@ -492,7 +516,7 @@ def iter_subspace(df, feat_select, previousBestScore, currentBestScore):
         print("Features to be considered for next iteration:")
         print(features_for_nxt_iter)
         
-        print('Features selected:')
+        print('Features selected Final:')
         print(features_selected_final)
         
         print("Number of features left for next iteration:", len(features_for_nxt_iter))
@@ -590,100 +614,110 @@ def NormalizeData(inputdataframe, columnName):
     inputdataframe.loc[~null_index, [columnName]] = scaler.fit_transform(inputdataframe.loc[~null_index, [columnName]])    
     return inputdataframe
 
+def dataPreprocessing(dataFrame):
+    ## Set class variable to 0 for 'Neg' and 1 for 'Pos'
+    for index, row in dataRaw.iterrows():
+        if float(row["mrt_liverfat_s2"]) <= 10:
+            dataRaw.mrt_liverfat_s2.iloc[[index]] = 0
+
+        if float(row["mrt_liverfat_s2"]) > 10:
+            dataRaw.mrt_liverfat_s2.iloc[[index]] = 1
+
+    ## Delete the unwanted features such as ones have date, time and id stored in it
+    dataFrame = dataFrame[dataFrame.columns.difference(
+        ['id', 'exdate_ship_s0', 'exdate_ship_s1', 'exdate_ship_s2', 'exdate_ship0_s0', 'blt_beg_s0', 'blt_beg_s1',
+         'blt_beg_s2'])]
+
+    ## Replace '?' with 'NaN'
+    dataFrame = dataFrame.replace('?', np.NaN)
+
+    k = dataFrame.nunique()
+    j = pd.unique(dataFrame.columns.values)
+
+    uniqueValFtreList = []
+
+    a = 0;
+    b = 0;
+    for i in k:
+        b = 0
+        for l in j:
+            if a == b:
+                uniqueValFtreList.append([l, i])
+            b = b + 1
+        a = a + 1
+
+    # print("***************Feature with possible Categorial Data*******************")
+    for x in uniqueValFtreList:
+        if x[1] <= 10:
+            listCategFeat.append(x[0])
+        else:
+            listContFeat.append(x[0])
+
+    ## List of text based categorical features
+    listTextCategFeat = ['mort_icd10_s0', 'stea_alt75_s0', 'stea_alt75_s2', 'stea_s0', 'stea_s2']
+
+    ## List of text based categorical features having missing values (np.NaN)
+    listTextCategFeatNaN = []
+
+    ## List containing index of NaN for text based categorical features
+    listTextCategFeatIndexNaN = []
+
+    ##
+    for data in dataFrame.columns:
+        if data not in listTextCategFeat and dataFrame[data].dtype == 'O':
+            dataFrame[[data]] = dataFrame[[data]].apply(pd.to_numeric)
+
+        if dataFrame[data].dtype == 'O' and data in listTextCategFeat:
+            unique_elements = dataFrame[data].unique().tolist()
+
+            if np.nan in unique_elements:
+                listTextCategFeatNaN.append(data)
+                listTextCategFeatIndexNaN.append(len(unique_elements) - 1)
+                unique_elements.remove(np.nan)
+                unique_elements.append(np.nan)
+
+            dataFrame[data] = dataFrame[data].apply(lambda x: unique_elements.index(x))
+
+    for col in dataFrame.columns:
+        if col in listTextCategFeatNaN:
+            dataFrame[col] = dataFrame[col].replace(listTextCategFeatIndexNaN[listTextCategFeatNaN.index(col)], np.NaN)
+
+    ## Normalize continuous variables
+    for col in dataFrame.columns:
+        if col in listContFeat:
+            dataFrame = NormalizeData(dataFrame, col)
+
+    return dataFrame
+
 
 ## Load the entire dataset into a data frame
 dataRaw = loadDatasetWithPandas(TRAIN_PATH)
 
+
+preTrainData = dataPreprocessing(dataRaw)
+trainData = preTrainData
+
 ## User sets the no of ML constraints
-# noMLCons = input("Enter the number of must-link constraints to be used:")
-noMLCons = 10
+noMLCons = int(input("Enter the number of must-link constraints to be used:"))
+
 ## User sets the no of NL constraints
-# noNLCons = input("Enter the number of not-link constraints to be used:")
-noNLCons = 10
+noNLCons = int(input("Enter the number of not-link constraints to be used:"))
+
 
 ## List of randomly selected ML constraint pairs
-#listMLConsPairs = createMLConsList()
-# listMLConsPairs = [(126, 160), (21, 503), (238, 433), (127, 521), (422, 512), (35, 212), (212, 267), (391, 396), (71, 252), (4, 465)]
-listMLConsPairs = [(69, 422), (469, 561), (144, 261), (505, 569), (109, 176), (304, 385), (111, 480), (196, 387), (331, 491), (101, 447)]
+listMLConsPairs = createMLConsList(trainData)
+#listMLConsPairs = [(126, 160), (21, 503), (238, 433), (127, 521), (422, 512), (35, 212), (212, 267), (391, 396), (71, 252), (4, 465)]
+#listMLConsPairs = [(69, 422), (469, 561), (144, 261), (505, 569), (109, 176), (304, 385), (111, 480), (196, 387), (331, 491), (101, 447)]
 
 ## List of randomly selected NL constraint pairs
-#listNLConsPairs = createNLConsList()
+listNLConsPairs = createNLConsList()
 # listNLConsPairs = [(393, 117), (28, 6), (219, 88), (21, 2), (41, 12), (13, 1), (239, 95), (207, 85), (155, 68), (134, 53)]
-listNLConsPairs = [(406, 128), (232, 93), (223, 91), (413, 129), (206, 84), (218, 87), (563, 200), (150, 63), (545, 196), (47, 16)]
-
-
-## Replace '?' with 'NaN'
-dataRaw = dataRaw.replace('?', np.NaN)
-
+#listNLConsPairs = [(406, 128), (232, 93), (223, 91), (413, 129), (206, 84), (218, 87), (563, 200), (150, 63), (545, 196), (47, 16)]
 
 ## Delete the unwanted features such as ones have date, time, id and class label stored in it
-trainData = dataRaw[dataRaw.columns.difference(['id', 'exdate_ship_s0', 'exdate_ship_s1', 'exdate_ship_s2', 'exdate_ship0_s0', 'blt_beg_s0', 'blt_beg_s1', 'blt_beg_s2', 'mrt_liverfat_s2'])]
-print(trainData)
+trainData = trainData[trainData.columns.difference(['mrt_liverfat_s2'])]
 
-
-k = dataRaw.nunique()
-j = pd.unique(dataRaw.columns.values)
-
-uniqueValFtreList = []
-
-a = 0;
-b = 0;
-for i in k:
-    b = 0
-    for l in j:
-        if a == b:
-            uniqueValFtreList.append([l, i])
-        b = b+1
-    a = a + 1
-
-#print("***************Feature with possible Categorial Data*******************")
-for x in uniqueValFtreList:
-    if x[1] <=10:
-        listCategFeat.append(x[0])
-    else:
-        listContFeat.append(x[0])
-        
-
-negDistSubspace = []
 # trainData = pd.DataFrame([])
-
-
-## List of text based categorical features
-listTextCategFeat = ['mort_icd10_s0', 'stea_alt75_s0', 'stea_alt75_s2', 'stea_s0', 'stea_s2']
-
-## List of text based categorical features having missing values (np.NaN)
-listTextCategFeatNaN = []
-
-## List containing index of NaN for text based categorical features
-listTextCategFeatIndexNaN = []
-
-
-##
-for data in trainData.columns:
-    if data not in listTextCategFeat and trainData[data].dtype == 'O':
-        trainData[[data]] = trainData[[data]].apply(pd.to_numeric)
-    
-    if trainData[data].dtype == 'O' and data in listTextCategFeat:
-        unique_elements = trainData[data].unique().tolist()
-
-        
-        if np.nan in unique_elements:
-            listTextCategFeatNaN.append(data)
-            listTextCategFeatIndexNaN.append(len(unique_elements) - 1)
-            unique_elements.remove(np.nan)
-            unique_elements.append(np.nan)
-            
-        trainData[data] = trainData[data].apply(lambda x:unique_elements.index(x))
-
-
-for col in trainData.columns:
-    if col in listTextCategFeatNaN:
-        trainData[col] = trainData[col].replace(listTextCategFeatIndexNaN[listTextCategFeatNaN.index(col)], np.NaN)
-
-## Normalize continuous variables
-for col in trainData.columns:
-    if col in listContFeat:
-        trainData = NormalizeData(trainData, col)
 
 ## Logging
 with open('output.txt', 'a') as f:
@@ -699,4 +733,16 @@ minPts = calcMinPts()
 currentBestScore = 0.0000001
 previousBestScore = 0
 features_selected = []
+
+print("The scores are: ", currentBestScore, "    ", previousBestScore)
+# List of features selected by Dress
 iter_subspace(trainData, features_selected, previousBestScore, currentBestScore)
+featureSelectedDress = eval_feature_sel
+
+print("Festures selected by DRESS:", eval_feature_sel)
+
+# Logging
+with open('DressEvaluation.txt', 'a') as f:
+    print("", file=f)
+    print("Datetime", datetime.datetime.now(), file=f)
+    print("Final Features selected:", featureSelectedDress, file=f)
