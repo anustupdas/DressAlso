@@ -1,0 +1,121 @@
+--- Original DRESS ---
+
+Datetime 2018-12-05 00:03:32.301548
+Final Features selected: ['hyp_s0', 'alcprobl_s0', 'abstain_s1', 'atc_c09aa02_s2', 'rubellai_s0', 'atc_a02a_s0', 'fib_cl_s2', 'quick_s2', 'earm_s0', 'atc_c01da_s0', 'atc_c09aa01_s0', 'atc_a02ba_s0']
+Itteration Number: 0
+
+Datetime 2018-12-05 00:03:32.305114
+Shape of Train Data: (466, 12)
+Shape of Test Data: (117, 12)
+
+Model Name is :  KNN
+Accuracy: 0.7435897435897436
+Sensitivity: 0.9659090909090909
+Specificity: 0.06896551724137931
+F Measure: 0.48382352941176465
+AUC Score: nan
+
+Model Name is :  Decision Tree
+Accuracy: 0.6239316239316239
+Sensitivity: 0.6590909090909091
+Specificity: 0.5172413793103449
+F Measure: 0.5652027027027027
+AUC Score: nan
+
+------------------------------------
+
+Datetime 2018-12-07 05:27:52.636428
+Final Features selected: ['gx_rs11591741', 'gx_rs11597086', 'ffs_pattern_s0', 'atc_m01a_s0', 'atc_m01ae01_s0', 'abstain_s0', 'atc_c09aa02_s2', 'diphi_s0', 'abstain_s1', 'migr_s0', 'osteo_s0', 'mrt_no_measurements', 'gout_s1', 'atc_n05bp_s0', 'atc_r05cb_s0', 'atc_c03c_s0', 'atc_c07aa_s0', 'atc_c08ca05_s1', 'mrt_lower', 'mrt_mean', 'mrt_upper', 'alkligt_s1', 'pankr_s0', 'atc_c07aa_s1', 'inceq_s0', 'mcs_sf12_s0', 'mi_s0', 'asthma_untreated_s0']
+Itteration Number: 1
+
+Datetime 2018-12-07 05:27:52.652242
+Shape of Train Data: (466, 28)
+Shape of Test Data: (117, 28)
+
+Model Name is :  KNN
+Accuracy: 0.8803418803418803
+Sensitivity: 1.0
+Specificity: 0.5333333333333333
+F Measure: 0.8105920444033303
+AUC Score: nan
+
+Model Name is :  Decision Tree
+Accuracy: 0.9658119658119658
+Sensitivity: 0.9770114942528736
+Specificity: 0.9333333333333333
+F Measure: 0.9551724137931035
+AUC Score: nan
+
+------------------------------------
+
+Datetime 2018-12-08 10:24:16.126958
+Final Features selected: ['ffs_pattern_s0', 'physact_s2', 'diabetes_s0', 'atc_n06a_s0', 'knoten_s0', 'hyperlipid_s0', 'marit_s0', 'partner_s0', 'sleepp_s2', 'atc_a12a_s0', 'atc_c08_s0', 'cancer_s0', 'atc_c08ca08_s0', 'earm_s2', 'atc_c09aa02_s2', 'atc_m01a_s0', 'atc_m01ae01_s0', 'mi_s0', 'atc_r03b_s0', 'pankr_s0', 'anti_hcv_s0']
+Itteration Number: 2
+
+Datetime 2018-12-08 10:24:16.155610
+Shape of Train Data: (466, 21)
+Shape of Test Data: (117, 21)
+
+Model Name is :  KNN
+Accuracy: 0.7692307692307693
+Sensitivity: 0.967741935483871
+Specificity: 0.0
+F Measure: 0.43478260869565216
+AUC Score: nan
+
+Model Name is :  Decision Tree
+Accuracy: 0.7777777777777778
+Sensitivity: 0.956989247311828
+Specificity: 0.08333333333333333
+F Measure: 0.5029411764705882
+AUC Score: nan
+
+------------------------------------
+
+Datetime 2018-12-08 17:19:57.841070
+Final Features selected: ['stea_s2', 'atc_c07a_s0', 'atc_g03f_s0', 'atc_c08_s2', 'atc_c07ab_s0', 'mi_s0', 'atc_c09aa02_s0', 'hs_crp_s0', 'ggt_s_s2', 'asthma_untreated_s0']
+Itteration Number: 3
+
+Datetime 2018-12-08 17:19:57.843571
+Shape of Train Data: (467, 10)
+Shape of Test Data: (116, 10)
+
+Model Name is :  KNN
+Accuracy: 0.7931034482758621
+Sensitivity: 0.8068181818181818
+Specificity: 0.75
+F Measure: 0.7458926615553121
+AUC Score: nan
+
+Model Name is :  Decision Tree
+Accuracy: 0.8275862068965517
+Sensitivity: 0.8863636363636364
+Specificity: 0.6428571428571429
+F Measure: 0.7646103896103897
+AUC Score: nan
+
+------------------------------------
+
+Datetime 2018-12-11 11:57:50.429824
+Final Features selected: ['gx_rs11597390', 'stea_s2', 'physact_s2', 'mrt_lower', 'depre_s0', 'mrt_mean', 'atc_b01ac06_s0', 'atc_a02a_s0', 'hemophilia_s0', 'abstain_s0', 'atc_m01ae01_s0', 'jodid_u_s2', 'mrt_upper', 'thrombos_s0', 'anti_hcv_s0', 'atc_c01da_s0', 'mrt_no_measurements', 'kaffee_s0', 'packyrs_s0', 'jodid_u_s0', 'ggt_s_s2', 'hdl_s_s0', 'zz_nr', 'lipo_a_s0', 'ggt_s_s0', 'crea_s_s0', 'hrs_s_s2', 'asthma_untreated_s0', 'atc_a03f_s0']
+Itteration Number: 4
+
+Datetime 2018-12-11 11:57:50.436305
+Shape of Train Data: (467, 29)
+Shape of Test Data: (116, 29)
+
+Model Name is :  KNN
+Accuracy: 0.9051724137931034
+Sensitivity: 0.9883720930232558
+Specificity: 0.6666666666666666
+F Measure: 0.8617701224136063
+AUC Score: nan
+
+Model Name is :  Decision Tree
+Accuracy: 0.9396551724137931
+Sensitivity: 0.9534883720930233
+Specificity: 0.9
+F Measure: 0.9221551145623623
+AUC Score: nan
+
+------------------------------------
