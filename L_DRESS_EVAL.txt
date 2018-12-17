@@ -1,0 +1,109 @@
+Date/Time: 2018-12-15 21:31:37.068465
+Final features selected: ['exloc_ship0_s0', 'atc_c09aa_s0', 'atc_a02a_s0', 'whratc_s0', 'kaffee_s0', 'asthma_untreated_s0']
+
+Iteration No: 0
+Date/Time: 2018-12-15 21:31:37.072169
+Shape of Train Data: (465, 6)
+Shape of Test Data: (118, 6)
+Model Name is :  KNN
+Accuracy: 0.7966101694915254
+Sensitivity: 1.0
+Specificity: 0.1724137931034483
+F Measure: 0.5876528829353523
+AUC Score: 0.5862068965517242
+******************-- End of Iteration of K fold --*******************
+Model Name is :  Decision Tree
+Accuracy: 0.7457627118644068
+Sensitivity: 0.9662921348314607
+Specificity: 0.06896551724137931
+F Measure: 0.4845661036691905
+AUC Score: 0.5176288260364199
+******************-- End of Iteration of K fold --*******************
+
+Date/Time: 2018-12-16 01:36:00.856493
+Final features selected: ['school_s0', 'schul_s0', 'atc_m01ae01_s0', 'atc_c09aa05_s2', 'atc_c09ca_s0', 'atc_a12a_s0', 'atc_c09aa02_s2', 'atc_c03c_s0', 'atc_c03e_s0', 'atc_m01a_s0', 'asthma_untreated_s0']
+
+Iteration No: 1
+Date/Time: 2018-12-16 01:36:00.859609
+Shape of Train Data: (466, 11)
+Shape of Test Data: (117, 11)
+Model Name is :  KNN
+Accuracy: 0.7435897435897436
+Sensitivity: 0.9662921348314607
+Specificity: 0.03571428571428571
+F Measure: 0.4569925742574258
+AUC Score: 0.5010032102728732
+******************-- End of Iteration of K fold --*******************
+Model Name is :  Decision Tree
+Accuracy: 0.7094017094017094
+Sensitivity: 0.898876404494382
+Specificity: 0.10714285714285714
+F Measure: 0.48737113402061855
+AUC Score: 0.5030096308186196
+******************-- End of Iteration of K fold --*******************
+Date/Time: 2018-12-16 04:48:21.101539
+Final features selected: ['atc_c07a_s2', 'atc_c07ab_s2', 'knoten_s0', 'atc_c07a_s0', 'ncigd_s0', 'atc_c03ca_s0', 'node_s0', 'atc_a02bc_s0', 'asthma_untreated_s0']
+
+
+Iteration No: 2
+Date/Time: 2018-12-16 04:48:21.105606
+Shape of Train Data: (467, 9)
+Shape of Test Data: (116, 9)
+Model Name is :  KNN
+Accuracy: 0.7155172413793104
+Sensitivity: 0.9318181818181818
+Specificity: 0.03571428571428571
+F Measure: 0.44481508339376363
+AUC Score: 0.48376623376623384
+******************-- End of Iteration of K fold --*******************
+Model Name is :  Decision Tree
+Accuracy: 0.75
+Sensitivity: 0.9886363636363636
+Specificity: 0.0
+F Measure: 0.42857142857142855
+AUC Score: 0.4943181818181818
+******************-- End of Iteration of K fold --*******************
+Date/Time: 2018-12-16 08:11:10.784224
+Final features selected: ['sleepp_s0', 'som_huef_s2', 'atc_c09aa02_s2', 'atc_g03f_s0', 'cancer_s0', 'atc_a02b_s0', 'atc_c09aa01_s0', 'atc_n05b_s0', 'asthma_untreated_s0']
+
+
+Iteration No: 3
+Date/Time: 2018-12-16 08:11:10.794866
+Shape of Train Data: (467, 9)
+Shape of Test Data: (116, 9)
+Model Name is :  KNN
+Accuracy: 0.7327586206896551
+Sensitivity: 0.9204545454545454
+Specificity: 0.14285714285714285
+F Measure: 0.522253221735087
+AUC Score: 0.5316558441558441
+******************-- End of Iteration of K fold --*******************
+Model Name is :  Decision Tree
+Accuracy: 0.7327586206896551
+Sensitivity: 0.8863636363636364
+Specificity: 0.25
+F Measure: 0.5726678550207962
+AUC Score: 0.5681818181818181
+******************-- End of Iteration of K fold --*******************
+Date/Time: 2018-12-16 21:04:21.268241
+Final features selected: ['waistc_s0', 'sleeph_s0', 'atc_m04a_s0', 'knoten_s0', 'atc_c09ca_s0', 'som_huef_s0', 'som_bmi_s2', 'asthma_diagnosed_s0', 'atc_c08da01_s2', 'atc_c01da_s0', 'som_huef_s2', 'som_bmi_s0', 'genintdoc12m_s0', 'diab_known_s0', 'fib_cl_s0', 'atc_c03ca_s0', 'som_tail_s0', 'asthma_untreated_s0']
+
+
+Iteration No: 4
+Date/Time: 2018-12-16 21:04:21.270945
+Shape of Train Data: (467, 18)
+Shape of Test Data: (116, 18)
+Model Name is :  KNN
+Accuracy: 0.7931034482758621
+Sensitivity: 0.9090909090909091
+Specificity: 0.42857142857142855
+F Measure: 0.6847826086956521
+AUC Score: 0.6688311688311688
+******************-- End of Iteration of K fold --*******************
+Model Name is :  Decision Tree
+Accuracy: 0.6810344827586207
+Sensitivity: 0.8068181818181818
+Specificity: 0.2857142857142857
+F Measure: 0.5475914409191526
+AUC Score: 0.5462662337662337
+******************-- End of Iteration of K fold --*******************
